@@ -83,7 +83,7 @@ const Status BufMgr::readPage(File* file, const int PageNo, Page*& page)
  * First check whether the page is already in the buffer pool by invoking the lookup() method on the hashtable to get a frame number. There are two cases to be handled depending on the outcome
  * of the lookup() call.
  *
- * Case 1) Page is not the buffer pool. Call allocBuf() to allocate a buffer frame and then call the moethod file->readPage() to read the page from disk into the buffer pool frame. Next insert the
+ * Case 1) Page is not the buffer pool. Call allocBuf() to allocate a buffer frame and then call the method file->readPage() to read the page from disk into the buffer pool frame. Next insert the
  * page into the hashtable. Finally, invoke Set() on the frame to set it up properly. Set() will leave the pinCnt for the page set to 1. Return a pointer to the frame containing the page via the page
  * parameter.
  *
@@ -91,8 +91,27 @@ const Status BufMgr::readPage(File* file, const int PageNo, Page*& page)
  *
  * Returns OK if no errors occurred, UNIXERR if a Unix error occured, BUFFEREXCEEDED if all buffer frames are pinned, HASHTBLERROR if a hash table error occurred.
  */
+    Status status = OK;
+    int frameNo = 0;
+    int frame;
+    status = bufTable.lookUp(file, PageNo, &frameNo);
 
+    // Case #1
+    if (status == HASHNOTFOUND) {
+        // Page not in buffer pool
+        status = allocBuf(&frame);
+        if (status == OK) {
+          //TODO 
+        } else if (status == BUFFEREXCEEDED) {
+          return BUFFEREXCEEDED;
+        } else if (status = UNIXERR) {
+          return UNIXERR;
+        }
+    } else if (status == OK) {
+       // TODO 
+    }
 
+    
 
 
 }
@@ -102,11 +121,19 @@ const Status BufMgr::unPinPage(File* file, const int PageNo,
 			       const bool dirty) 
 {
 /* 
- *  Decremements the pinCnt of the frame containing (file, PageNo) and, if dirty == true, sets the dirty bit. Returns OK if no errors occurred, HASHNOTFOUND if the pae is not in the buffer pool has
+ *  Decremements the pinCnt of the frame containing (file, PageNo) and, if dirty == true, sets the dirty bit. Returns OK if no errors occurred, HASHNOTFOUND if the page is not in the buffer pool hash
  *  table, PAGENOTPINNED if the pin count is already 0.
  */
-
-
+    Status status = OK;
+    status = bufTable.lookUp(file, PageNo, &frameNo);
+   
+    if (status == HASHNOTFOUND) {
+        // Page not in buffer pool
+        return HASHNOTFOUND;
+    } else if (status == OK) {
+        // Page in buffer pool
+        // TODO
+    } 
 
 
 }
@@ -119,11 +146,6 @@ const Status BufMgr::allocPage(File* file, int& pageNo, Page*& page)
  * both the page number of the newly allocated page to the caller via the pageNo parameter and a pointer to the buffer frame allocated for the page via the page parameter. Returns OK if no errors
  * occurred, UNIXERR if a Unix error occurred, BUFFEREXCEEDED if all buffer frames are pinned and HASHTBLERROR if a hash table error occured.
  */
-
-
-
-
-
 
 }
 
