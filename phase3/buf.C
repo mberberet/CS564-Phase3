@@ -71,9 +71,41 @@ const Status BufMgr::allocBuf(int & frame)
  *
  * Make sure that if the buffer frame allocated has a valid page in it, that you remove the appropriate entry from the hash table.
  */
+    Status status = OK;
+    BufDesc* tmpbuf;
+    for (int i = 0; i < numBufs; i++) {
+        advanceClock();
+        tmpbuf = &bufTable[clockHand];
+        if (tmpbuf->valid == false) {
+            frame* = clockHand;
+            return OK;
+        }
+        if (tmpbuf->refBit == true) {
+            tmpbuf->refBit = false;
+        } else if (tmpbuf->pinCnt == 0) {
+            if (tmpbuf->dirty == true) {
 
+                #ifdef DEBUGBUF
+            	cout << "Writing page " << tmpbuf->pageNo
+                << " from frame " << clockHand << endl;
+                #endif
 
-
+                // Attempt to write page to disk
+                status = tmpbuf->file->writePage(tmpbuf->pageNo,
+                    &(bufPool[clockHand]));
+                // Consider more error checking (badpageno, badpageptr)
+                if (status == UNIXERR) {
+        	        return UNIXERR;
+                }
+                // necessary?
+        	    tmpbuf->dirty = false;
+            }
+            hashTable->remove(tmpbuf->file,tmpbuf->pageNo);
+            frame* = clockHand;
+            return OK; 
+        }
+    }
+    return BUFFEREXCEEDED;
 }
 
 	
@@ -95,6 +127,8 @@ const Status BufMgr::readPage(File* file, const int PageNo, Page*& page)
     int frameNo = 0;
     int frame;
     status = bufTable.lookUp(file, PageNo, &frameNo);
+
+// NOTICE, ALLOCBUF DOES NOT SET THE FRAME!!!
 
     // Case #1
     if (status == HASHNOTFOUND) {
@@ -141,11 +175,13 @@ const Status BufMgr::unPinPage(File* file, const int PageNo,
 const Status BufMgr::allocPage(File* file, int& pageNo, Page*& page) 
 {
 /* 
- * This call is kind of weird. THe first step is to allocate an empty page in the specified file by invoking the file->allocatePage() method. This method will return the page number of the newly
+ * This call is kind of weird. The first step is to allocate an empty page in the specified file by invoking the file->allocatePage() method. This method will return the page number of the newly
  * allocated page. Then allocBuf() is called to obtain a buffer pool frame. Next, an entry is inserted into the hash table and Set() is invoked on the frame to set it up properly. The method returns
  * both the page number of the newly allocated page to the caller via the pageNo parameter and a pointer to the buffer frame allocated for the page via the page parameter. Returns OK if no errors
  * occurred, UNIXERR if a Unix error occurred, BUFFEREXCEEDED if all buffer frames are pinned and HASHTBLERROR if a hash table error occured.
  */
+
+// NOTICE, ALLOCBUF DOES NOT SET THE FRAME!!!
 
 }
 
@@ -168,39 +204,39 @@ const Status BufMgr::disposePage(File* file, const int pageNo)
 
 const Status BufMgr::flushFile(const File* file) 
 {
-  Status status;
+    Status status;
 
-  for (int i = 0; i < numBufs; i++) {
-    BufDesc* tmpbuf = &(bufTable[i]);
-    if (tmpbuf->valid == true && tmpbuf->file == file) {
+    for (int i = 0; i < numBufs; i++) {
+        BufDesc* tmpbuf = &(bufTable[i]);
+        if (tmpbuf->valid == true && tmpbuf->file == file) {
 
-      if (tmpbuf->pinCnt > 0)
-	  return PAGEPINNED;
+            if (tmpbuf->pinCnt > 0)
+    	        return PAGEPINNED;
 
-      if (tmpbuf->dirty == true) {
-#ifdef DEBUGBUF
-	cout << "flushing page " << tmpbuf->pageNo
-             << " from frame " << i << endl;
-#endif
-	if ((status = tmpbuf->file->writePage(tmpbuf->pageNo,
+            if (tmpbuf->dirty == true) {
+                #ifdef DEBUGBUF
+        	    cout << "flushing page " << tmpbuf->pageNo
+                << " from frame " << i << endl;
+                #endif
+                if ((status = tmpbuf->file->writePage(tmpbuf->pageNo,
 					      &(bufPool[i]))) != OK)
-	  return status;
+    	            return status;
 
-	tmpbuf->dirty = false;
-      }
+                tmpbuf->dirty = false;
+            }
 
-      hashTable->remove(file,tmpbuf->pageNo);
+        hashTable->remove(file,tmpbuf->pageNo);
 
-      tmpbuf->file = NULL;
-      tmpbuf->pageNo = -1;
-      tmpbuf->valid = false;
+        tmpbuf->file = NULL;
+        tmpbuf->pageNo = -1;
+        tmpbuf->valid = false;
     }
 
     else if (tmpbuf->valid == false && tmpbuf->file == file)
-      return BADBUFFER;
-  }
+        return BADBUFFER;
+    }
   
-  return OK;
+    return OK;
 }
 
 
