@@ -124,30 +124,42 @@ const Status BufMgr::readPage(File* file, const int PageNo, Page*& page)
  * Returns OK if no errors occurred, UNIXERR if a Unix error occured, BUFFEREXCEEDED if all buffer frames are pinned, HASHTBLERROR if a hash table error occurred.
  */
     Status status = OK;
-    int frameNo = 0;
-    int frame;
+    int frameNo = -1;
     status = bufTable.lookUp(file, PageNo, &frameNo);
-
-// NOTICE, ALLOCBUF DOES NOT SET THE FRAME!!!
 
     // Case #1
     if (status == HASHNOTFOUND) {
         // Page not in buffer pool
-        status = allocBuf(&frame);
+        status = allocBuf(&frameNo);
         if (status == OK) {
-          //TODO 
+            status = file->readPage(PageNo, &(bufPool[frameNo]));
+            // ??? on errors
+            if (status == BADPAGENO) {
+                return BADPAGENO;
+            } else if (status == BADPAGEPTR) {
+                return BADPAGEPTR;    
+            } else if (status == UNIXERR) {
+                return UNIXERR;
+            }
+            
+            status = hashTable->insert(file, PageNo, frameNo);
+            if (status == HASHTBLERROR) {
+                return HASHTBLERROR;
+            }
+            bufTable[frameNo]->Set(file, PageNo);
+
         } else if (status == BUFFEREXCEEDED) {
-          return BUFFEREXCEEDED;
+            return BUFFEREXCEEDED;
         } else if (status = UNIXERR) {
-          return UNIXERR;
+            return UNIXERR;
         }
     } else if (status == OK) {
-       // TODO 
+        bufTable[frameNo]->refbit = true;
+        bufTable[frameNo]->pinCnt++;
     }
-
-    
-
-
+    // might be wrong?
+    page = &(bufPool[frameNo]);
+    return OK;
 }
 
 
@@ -240,15 +252,14 @@ const Status BufMgr::flushFile(const File* file)
                 tmpbuf->dirty = false;
             }
 
-        hashTable->remove(file,tmpbuf->pageNo);
+            hashTable->remove(file,tmpbuf->pageNo);
 
-        tmpbuf->file = NULL;
-        tmpbuf->pageNo = -1;
-        tmpbuf->valid = false;
-    }
-
-    else if (tmpbuf->valid == false && tmpbuf->file == file)
-        return BADBUFFER;
+            tmpbuf->file = NULL;
+            tmpbuf->pageNo = -1;
+            tmpbuf->valid = false;
+        }
+        else if (tmpbuf->valid == false && tmpbuf->file == file)
+            return BADBUFFER;
     }
   
     return OK;
