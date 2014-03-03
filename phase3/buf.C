@@ -237,15 +237,14 @@ const Status BufMgr::flushFile(const File* file)
                 tmpbuf->dirty = false;
             }
 
-        hashTable->remove(file,tmpbuf->pageNo);
+            hashTable->remove(file,tmpbuf->pageNo);
 
-        tmpbuf->file = NULL;
-        tmpbuf->pageNo = -1;
-        tmpbuf->valid = false;
-    }
-
-    else if (tmpbuf->valid == false && tmpbuf->file == file)
-        return BADBUFFER;
+            tmpbuf->file = NULL;
+            tmpbuf->pageNo = -1;
+            tmpbuf->valid = false;
+        }
+        else if (tmpbuf->valid == false && tmpbuf->file == file)
+            return BADBUFFER;
     }
   
     return OK;
