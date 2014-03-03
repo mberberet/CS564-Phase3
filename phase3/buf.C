@@ -7,6 +7,11 @@
  *
  * Partner:	    Casey Lanham	
  * CS login:        lanham
+ *
+ * Purpose: The purpose of the BufMgr is to handle creating pages,
+ *      reading and writing pages to and from disk, and handle which pages
+ *      should be written based upon the clock algorithm that will free pages
+ *      that aren't being used or weren't referenced recently.
 */
 
 
@@ -75,46 +80,36 @@ BufMgr::~BufMgr() {
     delete [] bufPool;
 }
 
-/*
- * getCommands parses the command line arguments stored in argv and returns
- * a character array of the valid commands. The array when all commands are
- * used will have "sUSvc". U and c are defaulted to be set in the array.
- * The characters will always be in the same order, and the return string
- * is null terminated. Any -p commands will store a PID value in the array
- * pointed to by pidPtr. pidPtr will point to a null pointer and the
- * function will return null on an error.
+
+/* *
+ * Allocates a free frame through the implementation of the clock
+ * algorithm. It returns the newly freed frame through the parameter "frame".
  *
- * @param argc - argc pasted from main
- * @param argv - character string array of commandline arguments
- * #param pidPtr - pointer to address of an array of pid ints provided by
- * 	the -p <pid> command in the commandline
+ * @param frame - holds the allocated frame number
  *
- * @return cmd - returns address of the first character in the command
- * 	list
- *
+ * @return status - returns...
+ *      BUFFEREXCEEDED if there are no buffer frames free to allocate.
+ *      UNIXERR if there is an error when writing the dirty page to disk.
+ *      OK if successful.
  *
  * */
-
 const Status BufMgr::allocBuf(int & frame) 
 {
-/*
- * Allocates a free frame using the clock algorithm; if necessary, writing a dirty page back to disk. Returns BUFFEREXCEEDED if all buffer frames are pinned, UNIXERR if the call to I/O layer
- * returned an error when a dirty page was being written to disk and OK otherwise. This private method will get called by the readPage() and allocPage() methods.
- *
- * Make sure that if the buffer frame allocated has a valid page in it, that you remove the appropriate entry from the hash table.
- */
     Status status = OK;
     BufDesc* tmpbuf;
+    // Need to go through the frames at most twice each.
     for (int i = 0; i < numBufs * 2; i++) {
         advanceClock();
-        tmpbuf = &bufTable[clockHand];
+        tmpbuf = &bufTable[clockHand];  // Get the frame buffer description
         if (tmpbuf->valid == false) {
             frame = clockHand;
             return OK;
         }
+        // frame has been referenced, set to false
         if (tmpbuf->refbit == true) {
             tmpbuf->refbit = false;
         } else if (tmpbuf->pinCnt == 0) {
+            // Check if page needs to be written to disk.
             if (tmpbuf->dirty == true) {
 
                 #ifdef DEBUGBUF
@@ -125,44 +120,47 @@ const Status BufMgr::allocBuf(int & frame)
                 // Attempt to write page to disk
                 status = tmpbuf->file->writePage(tmpbuf->pageNo,
                     &(bufPool[clockHand]));
-                // Consider more error checking (badpageno, badpageptr)
+                // Check more errors?
                 if (status == UNIXERR) {
         	        return UNIXERR;
                 }
-        	    tmpbuf->dirty = false;
+        	    tmpbuf->dirty = false;  // Wrote successfully, no longer dirty.
             }
             hashTable->remove(tmpbuf->file,tmpbuf->pageNo);
             frame = clockHand;
             return OK; 
         }
     }
-    return BUFFEREXCEEDED;
+    return BUFFEREXCEEDED;  // Didn't find an unpinned page.
 }
 
-	
+
+/* *
+ * Reads a page from the buffer pool. If the page does not exist, a new page is
+ * created and returned.
+ *
+ * @param file - the pointer to the file object.
+ * @param PageNo - the page number to look up.
+ * @param page - the fetched page is returned through this parameter
+ *
+ * @return status - returns...
+ *      BUFFEREXCEEDED if there are no buffer frames free to allocate.
+ *      HASHTBLERROR if a hash table error occurs.
+ *      UNIXERR if there is an error when writing the dirty page to disk.
+ *      OK if successful.
+ *
+ * */
 const Status BufMgr::readPage(File* file, const int PageNo, Page*& page)
 {
-/* 
- * First check whether the page is already in the buffer pool by invoking the lookup() method on the hashtable to get a frame number. There are two cases to be handled depending on the outcome
- * of the lookup() call.
- *
- * Case 1) Page is not the buffer pool. Call allocBuf() to allocate a buffer frame and then call the method file->readPage() to read the page from disk into the buffer pool frame. Next insert the
- * page into the hashtable. Finally, invoke Set() on the frame to set it up properly. Set() will leave the pinCnt for the page set to 1. Return a pointer to the frame containing the page via the page
- * parameter.
- *
- * Case 2) Page is in the buffer pool. In this case set the appropriate refbit, increment the pinCnt for the page, and then return a pointer to the frame containing the page via the page parameter.
- *
- * Returns OK if no errors occurred, UNIXERR if a Unix error occured, BUFFEREXCEEDED if all buffer frames are pinned, HASHTBLERROR if a hash table error occurred.
- */
     Status status = OK;
     int frameNo = -1;
     status = hashTable->lookup(file, PageNo, frameNo);
 
-    // Case #1
     if (status == HASHNOTFOUND) {
         // Page not in buffer pool
         status = allocBuf(frameNo);
         if (status == OK) {
+            // fetch page from disk.
             status = file->readPage(PageNo, &(bufPool[frameNo]));
             // ??? on errors
             if (status == BADPAGENO) {
@@ -172,7 +170,6 @@ const Status BufMgr::readPage(File* file, const int PageNo, Page*& page)
             } else if (status == UNIXERR) {
                 return UNIXERR;
             }
-            
             status = hashTable->insert(file, PageNo, frameNo);
             if (status == HASHTBLERROR) {
                 return HASHTBLERROR;
@@ -185,10 +182,10 @@ const Status BufMgr::readPage(File* file, const int PageNo, Page*& page)
             return UNIXERR;
         }
     } else if (status == OK) {
+        // Page exists, set to referenced and increase pin count.
         bufTable[frameNo].refbit = true;
         bufTable[frameNo].pinCnt++;
     }
-    // might be wrong?
     page = &(bufPool[frameNo]);
     return OK;
 }
