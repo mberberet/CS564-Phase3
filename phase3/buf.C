@@ -207,6 +207,31 @@ const Status BufMgr::allocPage(File* file, int& pageNo, Page*& page)
  * both the page number of the newly allocated page to the caller via the pageNo parameter and a pointer to the buffer frame allocated for the page via the page parameter. Returns OK if no errors
  * occurred, UNIXERR if a Unix error occurred, BUFFEREXCEEDED if all buffer frames are pinned and HASHTBLERROR if a hash table error occured.
  */
+Status status;
+int frameNo;
+status = allocatePage(pageNo);
+if (status == UNIXERR)
+{
+        return UNIXERR;
+}
+status = allocBuf(&frameNo); 
+if (status == UNIXERR)
+{
+        return UNIXERR;
+}
+else if ( status == BUFFEREXCEEDED )
+{
+        return BUFFEREXCEEDED; 
+}
+status = hashTable->insert(file, PageNo, frameNo);
+if (status == HASHTBLERROR) 
+{
+        return HASHTBLERROR;
+}
+bufTable[frameNo]->Set(file, PageNo);
+
+page = &(bufPool[frameNo]);
+return OK;
 
 // NOTICE, ALLOCBUF DOES NOT SET THE FRAME!!!
 
