@@ -73,15 +73,15 @@ const Status BufMgr::allocBuf(int & frame)
  */
     Status status = OK;
     BufDesc* tmpbuf;
-    for (int i = 0; i < numBufs; i++) {
+    for (int i = 0; i < numBufs * 2; i++) {
         advanceClock();
         tmpbuf = &bufTable[clockHand];
         if (tmpbuf->valid == false) {
-            frame* = clockHand;
+            frame = clockHand;
             return OK;
         }
-        if (tmpbuf->refBit == true) {
-            tmpbuf->refBit = false;
+        if (tmpbuf->refbit == true) {
+            tmpbuf->refbit = false;
         } else if (tmpbuf->pinCnt == 0) {
             if (tmpbuf->dirty == true) {
 
@@ -97,11 +97,10 @@ const Status BufMgr::allocBuf(int & frame)
                 if (status == UNIXERR) {
         	        return UNIXERR;
                 }
-                // necessary?
         	    tmpbuf->dirty = false;
             }
             hashTable->remove(tmpbuf->file,tmpbuf->pageNo);
-            frame* = clockHand;
+            frame = clockHand;
             return OK; 
         }
     }
@@ -125,12 +124,12 @@ const Status BufMgr::readPage(File* file, const int PageNo, Page*& page)
  */
     Status status = OK;
     int frameNo = -1;
-    status = bufTable.lookUp(file, PageNo, &frameNo);
+    status = hashTable->lookup(file, PageNo, frameNo);
 
     // Case #1
     if (status == HASHNOTFOUND) {
         // Page not in buffer pool
-        status = allocBuf(&frameNo);
+        status = allocBuf(frameNo);
         if (status == OK) {
             status = file->readPage(PageNo, &(bufPool[frameNo]));
             // ??? on errors
@@ -146,16 +145,16 @@ const Status BufMgr::readPage(File* file, const int PageNo, Page*& page)
             if (status == HASHTBLERROR) {
                 return HASHTBLERROR;
             }
-            bufTable[frameNo]->Set(file, PageNo);
+            bufTable[frameNo].Set(file, PageNo);
 
         } else if (status == BUFFEREXCEEDED) {
             return BUFFEREXCEEDED;
-        } else if (status = UNIXERR) {
+        } else if (status == UNIXERR) {
             return UNIXERR;
         }
     } else if (status == OK) {
-        bufTable[frameNo]->refbit = true;
-        bufTable[frameNo]->pinCnt++;
+        bufTable[frameNo].refbit = true;
+        bufTable[frameNo].pinCnt++;
     }
     // might be wrong?
     page = &(bufPool[frameNo]);
@@ -172,7 +171,7 @@ const Status BufMgr::unPinPage(File* file, const int PageNo,
  */
     Status status = OK;
     int frameNo;
-    status = bufTable.lookUp(file, PageNo, &frameNo);
+    status = hashTable->lookup(file, PageNo, frameNo);
    
     if (status == HASHNOTFOUND) 
     {
@@ -182,16 +181,16 @@ const Status BufMgr::unPinPage(File* file, const int PageNo,
     else if (status == OK) 
     {
         // Page in buffer pool
-        if (bufTable[frameNo]->pinCnt = 0)
+        if (bufTable[frameNo].pinCnt == 0)
         {
             return PAGENOTPINNED;
         } 
         else
         {
-            bugTable[frameNo]->pinCnt--; 
+            bufTable[frameNo].pinCnt--; 
             if (dirty == true)
             {
-                bufTable[frameNo]->dirty = true;
+                bufTable[frameNo].dirty = true;
             }        
         }
     } 
@@ -208,12 +207,13 @@ const Status BufMgr::allocPage(File* file, int& pageNo, Page*& page)
  */
     Status status;
     int frameNo;
-    status = allocatePage(pageNo);
+    status = file->allocatePage(pageNo);
     if (status == UNIXERR)
     {
         return UNIXERR;
     }
-    status = allocBuf(&frameNo); 
+    status = allocBuf(frameNo); 
+
     if (status == UNIXERR)
     {
         return UNIXERR;
@@ -222,12 +222,13 @@ const Status BufMgr::allocPage(File* file, int& pageNo, Page*& page)
     {
         return BUFFEREXCEEDED; 
     }
-    status = hashTable->insert(file, PageNo, frameNo);
+    status = hashTable->insert(file, pageNo, frameNo);
+
     if (status == HASHTBLERROR) 
     {
         return HASHTBLERROR;
     }
-    bufTable[frameNo]->Set(file, PageNo);
+    bufTable[frameNo].Set(file, pageNo);
 
     page = &(bufPool[frameNo]);
     return OK;
