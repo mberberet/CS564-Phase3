@@ -165,7 +165,10 @@ const Status BufMgr::readPage(File* file, const int PageNo, Page*& page)
         if (status == OK) {
             status = file->readPage(PageNo, &(bufPool[frameNo]));
             // ??? on errors
-            if (status == BADPAGENO) {
+            if (status == BADPAGENO) {     
+                 
+
+
                 return BADPAGENO;
             } else if (status == BADPAGEPTR) {
                 return BADPAGEPTR;    
@@ -193,14 +196,25 @@ const Status BufMgr::readPage(File* file, const int PageNo, Page*& page)
     return OK;
 }
 
-
+/*
+ * Decrements the pinCnt of the frame containing (file, PageNo) 
+ * and, if dirty == true, sets the dirty bit
+ *
+ * @param file - the pointer to the file object 
+ * @param pageNo - the number of the page withing the file
+ * #param dirty - says if the file needs to be flushed to the 
+ *                      disk true if dirty false if not
+ *
+ * @return status - returns..
+ *                  OK if unpinned correctly 
+ *                  HASHNOTFOUND if the page is not in the buffer pool hash table
+ *                  PAGENOTPINNED if the pin count is already 0
+ *
+ *
+ * */
 const Status BufMgr::unPinPage(File* file, const int PageNo, 
 			       const bool dirty) 
 {
-/* 
- *  Decremements the pinCnt of the frame containing (file, PageNo) and, if dirty == true, sets the dirty bit. Returns OK if no errors occurred, HASHNOTFOUND if the page is not in the buffer pool hash
- *  table, PAGENOTPINNED if the pin count is already 0.
- */
     Status status = OK;
     int frameNo;
     status = hashTable->lookup(file, PageNo, frameNo);
@@ -228,18 +242,29 @@ const Status BufMgr::unPinPage(File* file, const int PageNo,
     } 
     return OK;
 }
+/*
+ * allocates an empty page in the specified file
+ *
+ *
+ *
+ * @param file   - the pointer to the file object 
+ * @param pageNo - the number of the page withing the file is returned through this parameter
+ * @param page   - the allocated page is returned through this parameter 
+ *
+ *
+ * @return status - returns..
+ *                  OK if unpinned correctly 
+ *                  HASHNOTFOUND if the page is not in the buffer pool hash table
+ *                  PAGENOTPINNED if the pin count is already 0
+ *
+ *
+ * */
 
 const Status BufMgr::allocPage(File* file, int& pageNo, Page*& page) 
 {
-/* 
- * This call is kind of weird. The first step is to allocate an empty page in the specified file by invoking the file->allocatePage() method. This method will return the page number of the newly
- * allocated page. Then allocBuf() is called to obtain a buffer pool frame. Next, an entry is inserted into the hash table and Set() is invoked on the frame to set it up properly. The method returns
- * both the page number of the newly allocated page to the caller via the pageNo parameter and a pointer to the buffer frame allocated for the page via the page parameter. Returns OK if no errors
- * occurred, UNIXERR if a Unix error occurred, BUFFEREXCEEDED if all buffer frames are pinned and HASHTBLERROR if a hash table error occured.
- */
     Status status;
-    int frameNo;
-    status = file->allocatePage(pageNo);
+    int frameNo; // holds the frame number of the page in the bufpool
+    status = file->allocatePage(pageNo); 
     if (status == UNIXERR)
     {
         return UNIXERR;
