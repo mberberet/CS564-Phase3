@@ -1,3 +1,15 @@
+/*
+ * File:		    buf.C	
+ * Semester:		CS564 Spring 2014
+ *
+ * Author:		Michael Berberet
+ * CS login:		berberet
+ *
+ * Partner:	    Casey Lanham	
+ * CS login:        lanham
+*/
+
+
 #include <memory.h>
 #include <unistd.h>
 #include <errno.h>
@@ -25,7 +37,8 @@ BufMgr::BufMgr(const int bufs)
 
     bufTable = new BufDesc[bufs];
     memset(bufTable, 0, bufs * sizeof(BufDesc));
-    for (int i = 0; i < bufs; i++) 
+    for (int i = 0; i < bufs; i++)         printf("%d\n", clockHand);
+
     {
         bufTable[i].frameNo = i;
         bufTable[i].valid = false;
@@ -62,6 +75,25 @@ BufMgr::~BufMgr() {
     delete [] bufPool;
 }
 
+/*
+ * getCommands parses the command line arguments stored in argv and returns
+ * a character array of the valid commands. The array when all commands are
+ * used will have "sUSvc". U and c are defaulted to be set in the array.
+ * The characters will always be in the same order, and the return string
+ * is null terminated. Any -p commands will store a PID value in the array
+ * pointed to by pidPtr. pidPtr will point to a null pointer and the
+ * function will return null on an error.
+ *
+ * @param argc - argc pasted from main
+ * @param argv - character string array of commandline arguments
+ * #param pidPtr - pointer to address of an array of pid ints provided by
+ * 	the -p <pid> command in the commandline
+ *
+ * @return cmd - returns address of the first character in the command
+ * 	list
+ *
+ *
+ * */
 
 const Status BufMgr::allocBuf(int & frame) 
 {
