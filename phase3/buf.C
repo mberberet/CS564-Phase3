@@ -159,17 +159,32 @@ const Status BufMgr::unPinPage(File* file, const int PageNo,
  *  table, PAGENOTPINNED if the pin count is already 0.
  */
     Status status = OK;
+    int frameNo;
     status = bufTable.lookUp(file, PageNo, &frameNo);
    
-    if (status == HASHNOTFOUND) {
+    if (status == HASHNOTFOUND) 
+    {
         // Page not in buffer pool
         return HASHNOTFOUND;
-    } else if (status == OK) {
+    }
+    else if (status == OK) 
+    {
         // Page in buffer pool
         // TODO
+        if (bufTable[frameNo]->pinCnt = 0)
+        {
+                return PAGENOTPINNED;
+        } 
+        else
+        {
+                bugTable[frameNo]->pinCnt--; 
+                if (dirty == true)
+                {
+                        bufTable[frameNo]->dirty = true;
+                }        
+        }
     } 
-
-
+    return OK;
 }
 
 const Status BufMgr::allocPage(File* file, int& pageNo, Page*& page) 
