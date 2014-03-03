@@ -193,6 +193,7 @@ const Status BufMgr::readPage(File* file, const int PageNo, Page*& page)
     return OK;
 }
 
+
 /*
  * Decrements the pinCnt of the frame containing (file, PageNo) 
  * and, if dirty == true, sets the dirty bit
@@ -206,8 +207,6 @@ const Status BufMgr::readPage(File* file, const int PageNo, Page*& page)
  *                  OK if unpinned correctly 
  *                  HASHNOTFOUND if the page is not in the buffer pool hash table
  *                  PAGENOTPINNED if the pin count is already 0
- *
- *
  * */
 const Status BufMgr::unPinPage(File* file, const int PageNo, 
 			       const bool dirty) 
@@ -239,8 +238,10 @@ const Status BufMgr::unPinPage(File* file, const int PageNo,
     } 
     return OK;
 }
+
+
 /*
- * allocates an empty page in the specified file
+ * Allocates an empty page in the specified file
  *
  *
  *
@@ -253,10 +254,7 @@ const Status BufMgr::unPinPage(File* file, const int PageNo,
  *                  OK if unpinned correctly 
  *                  HASHNOTFOUND if the page is not in the buffer pool hash table
  *                  PAGENOTPINNED if the pin count is already 0
- *
- *
- * */
-
+  * */
 const Status BufMgr::allocPage(File* file, int& pageNo, Page*& page) 
 {
     Status status;
