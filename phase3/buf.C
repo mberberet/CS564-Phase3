@@ -8,6 +8,9 @@
  * Partner:	    Casey Lanham	
  * CS login:        lanham
  *
+ * Partner:     Xuelong Zhang
+ * CS login:        xuelong
+ *
  * Purpose: The purpose of the BufMgr is to handle creating pages,
  *      reading and writing pages to and from disk, and handle which pages
  *      should be written based upon the clock algorithm that will free pages
@@ -42,8 +45,7 @@ BufMgr::BufMgr(const int bufs)
 
     bufTable = new BufDesc[bufs];
     memset(bufTable, 0, bufs * sizeof(BufDesc));
-    for (int i = 0; i < bufs; i++)         printf("%d\n", clockHand);
-
+    for (int i = 0; i < bufs; i++)
     {
         bufTable[i].frameNo = i;
         bufTable[i].valid = false;
@@ -120,9 +122,13 @@ const Status BufMgr::allocBuf(int & frame)
                 // Attempt to write page to disk
                 status = tmpbuf->file->writePage(tmpbuf->pageNo,
                     &(bufPool[clockHand]));
-                // Check more errors?
+
                 if (status == UNIXERR) {
         	        return UNIXERR;
+                } else if (status == BADPAGENO) {     
+                    return BADPAGENO;
+                } else if (status == BADPAGEPTR) {
+                    return BADPAGEPTR;    
                 }
         	    tmpbuf->dirty = false;  // Wrote successfully, no longer dirty.
             }
@@ -162,17 +168,15 @@ const Status BufMgr::readPage(File* file, const int PageNo, Page*& page)
         if (status == OK) {
             // fetch page from disk.
             status = file->readPage(PageNo, &(bufPool[frameNo]));
-            // ??? on errors
+
             if (status == BADPAGENO) {     
-                 
-
-
                 return BADPAGENO;
             } else if (status == BADPAGEPTR) {
                 return BADPAGEPTR;    
             } else if (status == UNIXERR) {
                 return UNIXERR;
             }
+
             status = hashTable->insert(file, PageNo, frameNo);
             if (status == HASHTBLERROR) {
                 return HASHTBLERROR;
