@@ -22,22 +22,35 @@ const Status createHeapFile(const string fileName)
     int			hdrPageNo;
     int			newPageNo;
     Page*		newPage;
-
+	
+	//check the fileName legth 
+	
     // try to open the file. This should return an error
     status = db.openFile(fileName, file);
     if (status != OK)
     {
 		// file doesn't exist. First create it and allocate
 		// an empty header page and data page.
+		status = db.createFile(fileName); //mignt be necessary to use the arrow ->
+		if (status != OK){
+			return status;
+		}
+		status = bufMgr->allocPage(file, hdrPageNo, newPage);
+		if (status != OK){
+			return status;
+		}
+		hdrPage = (FileHdrPage *)newPage;
+		strcpy(hdrPage->fileName, fileName.c_str());
 		
-		
-		
-		
-		
-		
-		
-		
-		
+		status = bufMgr->allocPage(file, newPageNo, newPage);
+		if (status != OK){
+			return status;
+		}
+		newPage->init(newPageNo); 
+		hdrPage -> firstPage = newPageNo;
+		hdrPage -> lastPage = newPageNo;
+		hdrPage -> pageCnt = 1;
+		hdrPage -> recCnt = 0;		
 		
     }
     return (FILEEXISTS);
