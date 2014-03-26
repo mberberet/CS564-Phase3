@@ -13,7 +13,7 @@ contents.  Finally, store the page number of the data page in firstPage and last
 attributes of the FileHdrPage.
 */
 
-When you have done all this unpin both pages and mark them as dirty.
+//When you have done all this unpin both pages and mark them as dirty.
 const Status createHeapFile(const string fileName)
 {
     File* 		file;
@@ -29,9 +29,6 @@ const Status createHeapFile(const string fileName)
     {
 		// file doesn't exist. First create it and allocate
 		// an empty header page and data page.
-		
-		
-		
 		
 		
 		
@@ -68,17 +65,27 @@ HeapFile::HeapFile(const string & fileName, Status& returnStatus)
     // open the file and read in the header page and the first data page
     if ((status = db.openFile(fileName, filePtr)) == OK)
     {
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
+        // Read in header page
+        if ((status = filePtr->getFirstPage(headerPageNo)) != OK) {
+            returnStatus = status;
+            return;
+        }
+        if ((status = bufMgr->readPage(filePtr, headerPageNo, pagePtr)) != OK) {
+            returnStatus = status;
+            return;
+        }
+        headerPage = (FileHdrPage *) pagePtr;
+        hdrDirtyFlag = false;
+
+        // Read in first page
+        if ((status = bufMgr->readPage(filePtr, headerPage->firstPage, curPage)) != OK) {
+            returnStatus = status;
+            return;
+        }
+        curPageNo = headerPage->firstPage;
+        curDirtyFlag = false;
+        curRec = NULLRID;
+	
     }
     else
     {
