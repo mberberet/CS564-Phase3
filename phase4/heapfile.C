@@ -322,9 +322,43 @@ const Status HeapFileScan::scanNext(RID& outRid)
     
     status = bufMgr->readPage(filePtr, curPageNo, curPage);
 		if (status != OK) return status;
-    
-    if (matchRec(rec)) {
-       return () 
+    status = curPage->getRecord(curRec, rec);
+    if (status != OK){
+        return status;
+    } 
+    if (matchRec(rec)){
+        return curRec;
+    }
+    tmpRid = curRid;
+    while (1){
+        status = curPage->nextRecord(tmpRid, nextRid);
+        if (status == ENDOFPAGE){
+            int nextPageNo;
+            status = curPage->getNextPage(nextPageNo);
+            if (status != OK){
+                return status;
+            } 
+            if (curPage->nextPage == -1){
+                return OK;
+            }else{
+                            
+                status = bufMgr->resdPage(filePtr, nextPageNo, curPage) 
+                if (status != OK){
+                    return status;
+                } 
+                status = curPage->firstRecord(tmpRid);
+                if (status != OK){
+                return status;
+                } 
+
+            }
+
+
+            
+        }
+        if 
+
+
     }
     
     	
