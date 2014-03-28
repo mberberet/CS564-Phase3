@@ -201,13 +201,13 @@ and use the pageNo field of the RID to read the page into the buffer pool.
 //TODO
 const Status HeapFile::getRecord(const RID & rid, Record & rec)
 {
-    Status status;
+   Status status;
  
-    // cout<< "getRecord. record (" << rid.pageNo << "." << rid.slotNo << ")" << endl;
+   cout<< "getRecord. record (" << rid.pageNo << "." << rid.slotNo << ")" << endl;
    status = curPage-> getRecord(rid, rec);
    while (status != ok){
-   curPage -> 
-   status =  curPage-> getRecord(rid, rec);
+   status =  curPage -> nextRecord(rid
+   status =  curPage -> getRecord(rid, rec);
    
    
    }
