@@ -13,7 +13,7 @@ contents.  Finally, store the page number of the data page in firstPage and last
 attributes of the FileHdrPage.
 */
 
-When you have done all this unpin both pages and mark them as dirty.
+// When you have done all this unpin both pages and mark them as dirty.
 const Status createHeapFile(const string fileName)
 {
     File* 		file;
@@ -45,7 +45,12 @@ const Status createHeapFile(const string fileName)
     }
     return (FILEEXISTS);
 }
-/*This is easy. Simply call db->destroyFile(). The user is expected to have closed all instances of the file before calling this function.
+/*This is easy. Simply call db->destroyFile(). The user is expecte/* 
+ * This call is kind of weird. The first step is to allocate an empty page in the specified file by invoking the file->allocatePage() method. This method will return the page number of the newly
+ * allocated page. Then allocBuf() is called to obtain a buffer pool frame. Next, an entry is inserted into the hash table and Set() is invoked on the frame to set it up properly. The method returns
+ * both the page number of the newly allocated page to the caller via the pageNo parameter and a pointer to the buffer frame allocated for the page via the page parameter. Returns OK if no errors
+ * occurred, UNIXERR if a Unix error occurred, BUFFEREXCEEDED if all buffer frames are pinned and HASHTBLERROR if a hash table error occured.
+ */d to have closed all instances of the file before calling this function.
 */
 // routine to destroy a heapfile
 const Status destroyHeapFile(const string fileName)
@@ -135,18 +140,26 @@ const int HeapFile::getRecCnt() const
 // is unpinned and the required page is read into the buffer pool
 // and pinned.  returns a pointer to the record via the rec parameter
 /*
-This method returns a record (via the rec structure) given the RID of the record. The private data members curPage and curPageNo should be used to keep track of the current data page pinned in the buffer pool. If the desired record is on the currently pinned page, simply invoke 
-curPage->getRecord(rid, rec) to get the record.  Otherwise, you need to unpin the currently pinned page (assuming a page is pinned) and use the pageNo field of the RID to read the page into the buffer pool.
+This method returns a record (via the rec structure) given the RID of the record. The private data members
+curPage and curPageNo should be used to keep track of the current data page pinned in the buffer pool.
+If the desired record is on the currently pinned page, simply invoke curPage->getRecord(rid, rec) 
+to get the record.  Otherwise, you need to unpin the currently pinned page (assuming a page is pinned) 
+and use the pageNo field of the RID to read the page into the buffer pool.
 */
 const Status HeapFile::getRecord(const RID & rid, Record & rec)
 {
     Status status;
-
+ 
     // cout<< "getRecord. record (" << rid.pageNo << "." << rid.slotNo << ")" << endl;
+   status = curPage-> getRecord(rid, rec);
+   while (status != ok){
+   curPage -> 
+   status =  curPage-> getRecord(rid, rec);
    
    
+   }
    
-   
+  return status;
    
    
    
