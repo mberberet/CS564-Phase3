@@ -51,7 +51,25 @@ const Status createHeapFile(const string fileName)
 		hdrPage -> lastPage = newPageNo;
 		hdrPage -> pageCnt = 1;
 		hdrPage -> recCnt = 0;		
+	    
+      
+        filePtr = file;
+        headerPage = hdrPage;
+        headerPageNo = hdePageNo;
+        hdrDirtyFlag = true; 
+        curDirtyFlag = true;
+        
+        status = bufMgr->unPinPage(filePtr, hdrPageNo, hdrDirtyFlag);
+       	if (status != OK){
+			return status;
+		}
 		
+        statue = bufMgr->inPinPage(filePtr, newPageNo, curDirtyFlag);
+		if (status != OK){
+			return status;
+		}
+		
+     	
     }
     return (FILEEXISTS);
 }
@@ -301,9 +319,15 @@ const Status HeapFileScan::scanNext(RID& outRid)
     RID		tmpRid;
     int 	nextPageNo;
     Record      rec;
-
     
-	
+    status = bufMgr->readPage(filePtr, curPageNo, curPage);
+		if (status != OK) return status;
+    
+    if (matchRec(rec)) {
+       return () 
+    }
+    
+    	
 	
 	
 	
