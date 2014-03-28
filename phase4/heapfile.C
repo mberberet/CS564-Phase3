@@ -192,19 +192,10 @@ For those of you new to C++, since HeapFileScan is derived from HeapFile, the co
 
 Shuts down the scan by calling endScan().  After the HeapFileScan destructor is invoked, the HeapFile destructor will be automatically invoked
 */
-//TODO
 HeapFileScan::HeapFileScan(const string & name,
 			   Status & status) : HeapFile(name, status)
 {
     filter = NULL;
-
-
-
-
-
-
-
-
 }
 
 
