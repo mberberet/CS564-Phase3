@@ -1,6 +1,8 @@
 #include "heapfile.h"
 #include "error.h"
 
+//TODO Input validation
+
 // routine to create a heapfile
 /* This function creates an empty (well, almost empty) heap file. To do this create a db level
 file by calling db->createfile(). Then, allocate an empty page by invoking bm->allocPage()
@@ -436,13 +438,15 @@ InsertFileScan::~InsertFileScan()
 }
 
 
-/* Inserts the record described by rec into the file returning the RID of the inserted record in outRid.
-*/
+/* 
+ * Inserts the record described by rec into the file returning the RID of the inserted record in outRid.
+ */
 // Insert a record into the file
-// TODO
+// TODO UNPIN??
 const Status InsertFileScan::insertRecord(const Record & rec, RID& outRid)
 {
-    Page*	newPage;
+    Page *	newPage; 
+    Page *  curLastPage;
     int		newPageNo;
     Status	status, unpinstatus;
     RID		rid;
@@ -453,19 +457,31 @@ const Status InsertFileScan::insertRecord(const Record & rec, RID& outRid)
         // will never fit on a page, so don't even bother looking
         return INVALIDRECLEN;
     }
+    
+    // always insert record on last page
+    // if overflow, create a new page
+    
+    // TODO incorrect, last page is an integer. need to get page
+    if ((status = bufMgr->readPage(filePtr, headerPage->lastPage, curLastPage)) != OK) {
+        return status;
+    }
+    status = curLastPage->insertRecord(rec, rid);
 
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
+    if (status == NOSPACE) {
+        // Create new page
+        // Ensure page is now last page of heapfile
+
+		status = bufMgr->allocPage(filePtr, newPageNo, newPage);
+		if (status != OK){
+			return status;
+		}
+        status = newPage->insertRecord(rec, rid);
+        headerPage->lastPage = newPageNo;
+        curLastPage->setNextPage(newPageNo);
+        headerPage->pageCnt++;
+    }
+
+    headerPage->recCnt++;
+    outRid = rid;
+    return OK;
 }
-
-
