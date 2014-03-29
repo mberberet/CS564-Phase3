@@ -4,7 +4,7 @@
 //Remove later
 #include "stdio.h"
 
-//TODO Input validation
+//TODO Input validation, Use of dirtyPageFlag
 
 // routine to create a heapfile
 /* This function creates an empty (well, almost empty) heap file. To do this create a db level
@@ -563,8 +563,9 @@ const Status InsertFileScan::insertRecord(const Record & rec, RID& outRid)
             return status;
         }
     }
-
+    // Unpin Header?
     headerPage->recCnt++;
+    hdrDirtyFlag->true;
     outRid = rid;
     return OK;
 }
