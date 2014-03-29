@@ -329,45 +329,64 @@ const Status HeapFileScan::scanNext(RID& outRid)
     
 
     status = bufMgr->readPage(filePtr, curPageNo, curPage);
-		if (status != OK) return status;
+    if (status != OK){
+        return status;
+    }
+    
     status = curPage->getRecord(curRec, rec);
     if (status != OK){
         return status;
     } 
+
     if (matchRec(rec)){
         return curRec;
     }
+
     tmpRid = curRid;
-    while (1){
+
+    while (){
         status = curPage->nextRecord(tmpRid, nextRid);
         if (status == ENDOFPAGE){
             int nextPageNo;
+
             status = curPage->getNextPage(nextPageNo);
-            // Need to unpin previous page
+            if (status != OK){
+                return status;
+            }
+
+            status = bufMgr->unPinPage(file, curPageNo, curDirtyFlag);
+            if (status != OK){
+                return status;
+            }
+
+            status = bufMgr->readPage(filePtr, nextPageNo, curPage) 
+            if (status != OK){
+                return status;
+            }
+
+            status = curPage->firstRecord(tmpRid);
             if (status != OK){
                 return status;
             } 
-            if (curPage->nextPage == -1){
-                return OK;
-            }else{
-                status = bufMgr->readPage(filePtr, nextPageNo, curPage) 
-                if (status != OK){
-                    return status;
-                }
-                status = curPage->firstRecord(tmpRid);
-                if (status != OK){
-                    return status;
-                } 
-
-            }
-
-
-            
+             
+            status = bufMgr->unPinPage(file, curPageNo, curDirtyFlag);
+            if (status != OK){
+                return status;
+            }           
         }
-        if 
 
+        status = curPage->getRecord(tmpRid, rec);
+        if (status != OK){
+            return status;
+        } 
 
-
+        if (matchRec(rec)){
+            status = bufMgr->unPinPage(file, curPageNo, curDirtyFlag);
+            if (status != OK){
+                return status;
+            } 
+            return curRec;
+        }
     }
     // Remember to unpin page once you are done with it
       
