@@ -344,25 +344,27 @@ const Status HeapFileScan::scanNext(RID& outRid)
     RID     tmpRid;
     int     nextPageNo;
     Record      rec;
+    bool    found = false;
     
-
-    status = bufMgr->readPage(filePtr, curPageNo, curPage);
+    
+/*    status = bufMgr->readPage(filePtr, curPageNo, curPage);
     if (status != OK){
         return status;
     }
-   
+  */ 
     tmpRid = curRec;
 
-    while (1){
+    while (!found){
         status = curPage->nextRecord(tmpRid, nextRid);
         if (status == ENDOFPAGE){
-            int nextPageNo;
 
             status = curPage->getNextPage(nextPageNo);
             if (status != OK){
                 return status;
+            } else if (nextPageNo == -1) {
+                return FILEEOF;
             }
-
+            
             status = bufMgr->unPinPage(filePtr, curPageNo, curDirtyFlag);
             if (status != OK){
                 return status;
@@ -372,33 +374,27 @@ const Status HeapFileScan::scanNext(RID& outRid)
             if (status != OK){
                 return status;
             }
+            curPageNo = nextPageNo;
+            curDirtyFlag = false;
 
-            status = curPage->firstRecord(tmpRid);
+            status = curPage->firstRecord(nextRid);
             if (status != OK){
                 return status;
             } 
-             
-            status = bufMgr->unPinPage(filePtr, curPageNo, curDirtyFlag);
-            if (status != OK){
-                return status;
-            }           
         }
-
+        tmpRid = nextRid;
         status = curPage->getRecord(tmpRid, rec);
         if (status != OK){
             return status;
         } 
-        curRec = tmpRid;
+//        curRec = tmpRid;
         if (matchRec(rec)){
-            status = bufMgr->unPinPage(filePtr, curPageNo, curDirtyFlag);
-            if (status != OK){
-                return status;
-            } 
+            curRec = tmpRid;
             outRid = curRec;
+            found = true;
         }
     }
-    // Remember to unpin page once you are done with it
-         
+
     return OK;
    
 }
