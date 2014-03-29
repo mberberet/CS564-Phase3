@@ -5,16 +5,15 @@
  * Author:		Michael Berberet
  * CS login:		berberet
  *
- * Partner:	    Casey Lanham	
- * CS login:        lanham
+ * Partner:	        Casey Lanham	
+ * CS login:            lanham
  *
- * Partner:     Xuelong Zhang
- * CS login:        xuelong
+ * Partner:             Xuelong Zhang
+ * CS login:            xuelong
  *
- * Purpose: The purpose of the BufMgr is to handle creating pages,
- *      reading and writing pages to and from disk, and handle which pages
- *      should be written based upon the clock algorithm that will free pages
- *      that aren't being used or weren't referenced recently.
+ * Purpose: The purpose of this program is to implement a file manager
+ * for Heap Files that also provides a scan function that allows you
+ * to search the heap files with a given filter
 */
 
 
@@ -207,31 +206,32 @@ HeapFile::~HeapFile()
 }
 
 
-/*Returns the number of records currently in the file (as found in the header page for the file).
-*/
 const int HeapFile::getRecCnt() const
 {
   return headerPage->recCnt;
 }
 
+/* *
+ * returns the record for the given RID 
+ * 
+ *
+ * @param rid - holds the slot number and page number for the 
+ *    record that needs to be found
+ * @param rec - holds the data and length of the record that
+ *    was found 
+ * @return status - returns...
+ *      OK if the record was found
+ *      
+ * */
 
-// retrieve an arbitrary record from a file.
-// if record is not on the currently pinned page, the current page
-// is unpinned and the required page is read into the buffer pool
-// and pinned.  returns a pointer to the record via the rec parameter
-/*
-This method returns a record (via the rec structure) given the RID of the record. The private data members
-curPage and curPageNo should be used to keep track of the current data page pinned in the buffer pool.
-If the desired record is on the currently pinned page, simply invoke curPage->getRecord(rid, rec) 
-to get the record.  Otherwise, you need to unpin the currently pinned page (assuming a page is pinned) 
-and use the pageNo field of the RID to read the page into the buffer pool.
-*/
-//TODO
+
 const Status HeapFile::getRecord(const RID & rid, Record & rec)
 {
     Status status;
-//    cout<< "getRecord. record (" << rid.pageNo << "." << rid.slotNo << ")" << endl;
-    if (rid.pageNo == curPageNo){ 
+//cout<< "getRecord. record (" << rid.pageNo << "." << rid.slotNo << ")" << endl;
+//checks to see if current page has the record that we are looking for
+//returns the record in the rec field and an ok status if it is  
+    if (rid.pageNo == curPageNo){  
         status = curPage-> getRecord(rid, rec);
         if (status != OK) {
             return status;
@@ -239,6 +239,9 @@ const Status HeapFile::getRecord(const RID & rid, Record & rec)
         curRec = rid;
         return OK;
     }
+// if the record was not in the current page, we unpin the page and read in 
+// the page that is needed.(the needed page is found using the page number 
+// found in the RID)
     else {
         if ((status = bufMgr -> unPinPage (filePtr, curPageNo, false)) != OK){
             return status;
@@ -248,7 +251,7 @@ const Status HeapFile::getRecord(const RID & rid, Record & rec)
             return status;
         }
         
-        status =  curPage -> getRecord(rid, rec);
+        status =  curPage -> getRecord(rid, rec); // gets the record
         if (status != OK) {
             return status;
         }
@@ -258,11 +261,7 @@ const Status HeapFile::getRecord(const RID & rid, Record & rec)
 }
 
 
-/*
-Initializes the data members of the object and then opens the appropriate heapfile by calling the HeapFile constructor with the name of the file. The status of all these operations is indicated via the status parameter.
 
-For those of you new to C++, since HeapFileScan is derived from HeapFile, the constructor for the HeapFile class is invoked before the HeapFileScan constructor is invoked.
-*/
 HeapFileScan::HeapFileScan(const string & name,
                Status & status) : HeapFile(name, status)
 {
