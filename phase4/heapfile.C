@@ -21,21 +21,6 @@
 #include "error.h"
 
 
-// routine to create a heapfile
-/* This function creates an empty (well, almost empty) heap file. To do this create a db level
-file by calling db->createfile(). Then, allocate an empty page by invoking bm->allocPage()
-appropriately. As you know allocPage() will return a pointer to an empty page in the buffer
-pool along with the page number of the page. Take the Page* pointer returned from allocPage()
-and cast it to a FileHdrPage*. Using this pointer initialize the values in the header page.
-Then make a second call to bm->allocPage(). This page will be the first data page of the
-file. Using the Page* pointer returned, invoke its init() method to initialize the page
-contents.  Finally, store the page number of the data page in firstPage and lastPage
-attributes of the FileHdrPage.
-*/
-
-
-// When you have done all this unpin both pages and mark them as dirty.
-
 /* *
  * create an heap file with the header page and the first file page.
  * unpin the two pages after intialization and marking the dirty bits dirty.
@@ -172,7 +157,6 @@ HeapFile::HeapFile(const string & fileName, Status& returnStatus)
     {
         cerr << "open of heap file failed\n";
         returnStatus = status;
-        printf ("status = %s" , status);
         return;
     }
 }
@@ -216,6 +200,7 @@ const int HeapFile::getRecCnt() const
   return headerPage->recCnt;
 }
 
+
 /* *
  * returns the record for the given RID 
  * 
@@ -228,8 +213,6 @@ const int HeapFile::getRecCnt() const
  *      OK if the record was found
  *      
  * */
-
-
 const Status HeapFile::getRecord(const RID & rid, Record & rec)
 {
     Status status;
@@ -357,9 +340,6 @@ const Status HeapFileScan::resetScan()
 }
 
 
-/* Returns (via the outRid parameter) the RID of the next record that satisfies the scan predicate. The basic idea is to scan the file one page at a time. For each page, use the firstRecord() and nextRecord() methods of the Page class to get the rids of all the records on the page. Convert the rid to a pointer to the record data and invoke matchRec() to determine if record satisfies the filter associated with the scan. If so, store the rid in curRec and return curRec. To make things fast, keep the current page pinned until all the records on the page have been processed. Then continue with the next page in the file.  Since the HeapFileScan class is derived from the HeapFile class it also has all the methods of the HeapFile class as well. Returns OK if no errors occurred. Otherwise, return the error code of the first error that occurred.
-*/
-//TODO
 /* *
  * scan each record starting from the first one of the current page until finding a match
  * or reach end of file or end of records, move to the next page when encounter end of page
@@ -372,8 +352,6 @@ const Status HeapFileScan::resetScan()
  *      each method that would return a status
  *
  * */
-
-
 const Status HeapFileScan::scanNext(RID& outRid)
 {
     Status  status = OK;
@@ -543,6 +521,7 @@ InsertFileScan::~InsertFileScan()
         if (status != OK) cerr << "error in unpin of data page\n";
     }
 }
+
 
 /* *
  * Inserts a record into the heap file. 
