@@ -343,20 +343,20 @@ const Status HeapFileScan::scanNext(RID& outRid)
         if (status == ENDOFPAGE){
             int nextPageNo;
             status = curPage->getNextPage(nextPageNo);
+            // Need to unpin previous page
             if (status != OK){
                 return status;
             } 
             if (curPage->nextPage == -1){
                 return OK;
             }else{
-                            
-                status = bufMgr->resdPage(filePtr, nextPageNo, curPage) 
+                status = bufMgr->readPage(filePtr, nextPageNo, curPage) 
                 if (status != OK){
                     return status;
-                } 
+                }
                 status = curPage->firstRecord(tmpRid);
                 if (status != OK){
-                return status;
+                    return status;
                 } 
 
             }
@@ -369,7 +369,7 @@ const Status HeapFileScan::scanNext(RID& outRid)
 
 
     }
-    
+    // Remember to unpin page once you are done with it
       
     
     
