@@ -39,8 +39,8 @@ int main(int argc, char **argv)
     bufMgr = new BufMgr(101);
 
     int i,j;
-//    int num = 10120;
-    int num = 50;
+    int num = 10120;
+//    int num = 50;
     Record dbrec1;
     RID*  ridArray;
 
@@ -78,7 +78,7 @@ int main(int argc, char **argv)
 
 		// stash away rid and key of the record
 		ridArray[i] = newRid;
-		printf("next rid (%d.%d)\n",ridArray[i].pageNo, ridArray[i].slotNo);
+		// printf("next rid (%d.%d)\n",ridArray[i].pageNo, ridArray[i].slotNo);
 
         if (status != OK) 
         {
@@ -111,7 +111,7 @@ int main(int argc, char **argv)
     	    rec1.f = i;
 
 			// now read the record
-			printf("getting record (%d.%d)\n",ridArray[i].pageNo, ridArray[i].slotNo);
+			// printf("getting record (%d.%d)\n",ridArray[i].pageNo, ridArray[i].slotNo);
 			status = file1->getRecord(ridArray[i], dbrec2);
     	    if (status != OK) error.print(status);
 
@@ -233,11 +233,11 @@ int main(int argc, char **argv)
 		deleted = 0;
 		while ((status = scan1->scanNext(rec2Rid)) != FILEEOF)
 		{
-			 cout << "processing record " << i << i << endl;
+			// cout << "processing record " << i << i << endl;
 			if (status != OK) error.print(status);
 			if ((i % 2) != 0)
 			{
-				printf("deleting record %d with rid(%d.%d)\n",i,rec2Rid. pageNo, rec2Rid.slotNo);
+				//printf("deleting record %d with rid(%d.%d)\n",i,rec2Rid. pageNo, rec2Rid.slotNo);
 				status = scan1->deleteRecord(); 
 				deleted++;
 				if ((status != OK)  && ( status != NORECORDS))
@@ -285,7 +285,7 @@ int main(int argc, char **argv)
         }
         // subtract first record
         i--;
-        
+
         if (status != FILEEOF) error.print(status);
         scan1->endScan(); 
         delete scan1;
@@ -293,6 +293,7 @@ int main(int argc, char **argv)
 
         scan1 = new HeapFileScan("dummy.02", status);
         scan1->startScan(0, 0, STRING, NULL, EQ);
+    printf("\n\n");
 
         // delete the rest (should only be one)
         while ((status = scan1->scanNext(rec2Rid)) != FILEEOF)
@@ -321,7 +322,7 @@ int main(int argc, char **argv)
 	cerr << "got err0r status return from  destroyHeapFile" << endl;
     	error.print(status);
     }
-/*
+
     status = createHeapFile("dummy.03");
     if (status != OK) 
     {
@@ -689,7 +690,7 @@ int main(int argc, char **argv)
 
     cout << endl << "Done testing." << endl;
     return 1;
-*/
+
 }
 
 

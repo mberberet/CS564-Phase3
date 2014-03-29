@@ -345,14 +345,12 @@ const Status HeapFileScan::scanNext(RID& outRid)
     if (status != OK){
         return status;
     }
-  */ 
+  */
     tmpRid = curRec;
-    if (tmpRid == NULLRID) {
-        printf("Was Null Rid\n");
-    }
     while (!found){
         status = curPage->nextRecord(tmpRid, nextRid);
-        if (status == ENDOFPAGE){
+
+        while (status == ENDOFPAGE || status == NORECORDS){
 
             if (curPageNo == headerPage->lastPage) {
                 return FILEEOF;
@@ -375,11 +373,9 @@ const Status HeapFileScan::scanNext(RID& outRid)
             curDirtyFlag = false;
 
             status = curPage->firstRecord(nextRid);
-            if (status != OK){
-                return status;
-            } 
         }
         tmpRid = nextRid;
+
         status = curPage->getRecord(tmpRid, rec);
         if (status != OK){
             return status;
@@ -416,7 +412,6 @@ const Status HeapFileScan::deleteRecord()
 
     // delete the "current" record from the page
     status = curPage->deleteRecord(curRec);
-    printf("Deleted (%d.%d)\n", curRec.pageNo, curRec.slotNo);
     curDirtyFlag = true;
 
     // reduce count of number of records in the file
