@@ -108,10 +108,13 @@ HeapFile::HeapFile(const string & fileName, Status& returnStatus)
         // Read in header page
         if ((status = filePtr->getFirstPage(headerPageNo)) != OK) {
             returnStatus = status;
+            printf("Issue here 1\n");
             return;
         }
         if ((status = bufMgr->readPage(filePtr, headerPageNo, pagePtr)) != OK) {
             returnStatus = status;
+            printf("Issue here 2\n");
+
             return;
         }
         headerPage = (FileHdrPage *) pagePtr;
@@ -121,6 +124,8 @@ HeapFile::HeapFile(const string & fileName, Status& returnStatus)
         status = bufMgr->readPage(filePtr, headerPage->firstPage, curPage);
         if (status != OK) {
             returnStatus = status;
+            printf("Issue here 3\n");
+
             return;
         }
         curPageNo = headerPage->firstPage;
