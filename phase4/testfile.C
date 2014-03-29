@@ -39,8 +39,8 @@ int main(int argc, char **argv)
     bufMgr = new BufMgr(101);
 
     int i,j;
-    int num = 10120;
-//    int num = 50;
+//    int num = 10120;
+    int num = 50;
     Record dbrec1;
     RID*  ridArray;
 
@@ -233,11 +233,11 @@ int main(int argc, char **argv)
 		deleted = 0;
 		while ((status = scan1->scanNext(rec2Rid)) != FILEEOF)
 		{
-			// cout << "processing record " << i << i << endl;
+			 cout << "processing record " << i << i << endl;
 			if (status != OK) error.print(status);
 			if ((i % 2) != 0)
 			{
-				//printf("deleting record %d with rid(%d.%d)\n",i,rec2Rid. pageNo, rec2Rid.slotNo);
+				printf("deleting record %d with rid(%d.%d)\n",i,rec2Rid. pageNo, rec2Rid.slotNo);
 				status = scan1->deleteRecord(); 
 				deleted++;
 				if ((status != OK)  && ( status != NORECORDS))
