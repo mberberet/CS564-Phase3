@@ -132,6 +132,7 @@ HeapFile::HeapFile(const string & fileName, Status& returnStatus)
     {
         cerr << "open of heap file failed\n";
         returnStatus = status;
+        printf ("status = %s" , status);
         return;
     }
 }

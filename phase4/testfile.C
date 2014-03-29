@@ -189,7 +189,7 @@ int main(int argc, char **argv)
     scan1->endScan();
     delete scan1;
     scan1 = NULL;
-/*	    
+	    
     // pull every 7th record from the file directly w/o opening a scan
     // by using the file->getRecord() method
     cout << endl;
@@ -321,7 +321,7 @@ int main(int argc, char **argv)
 	cerr << "got err0r status return from  destroyHeapFile" << endl;
     	error.print(status);
     }
-/*
+
     status = createHeapFile("dummy.03");
     if (status != OK) 
     {
@@ -689,7 +689,7 @@ int main(int argc, char **argv)
 
     cout << endl << "Done testing." << endl;
     return 1;
-*/
+
 }
 
 
