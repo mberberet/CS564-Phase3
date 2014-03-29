@@ -1,10 +1,30 @@
+/*
+ * File:		    heapfile.C	
+ * Semester:		CS564 Spring 2014
+ *
+ * Author:		Michael Berberet
+ * CS login:		berberet
+ *
+ * Partner:	    Casey Lanham	
+ * CS login:        lanham
+ *
+ * Partner:     Xuelong Zhang
+ * CS login:        xuelong
+ *
+ * Purpose: The purpose of the BufMgr is to handle creating pages,
+ *      reading and writing pages to and from disk, and handle which pages
+ *      should be written based upon the clock algorithm that will free pages
+ *      that aren't being used or weren't referenced recently.
+*/
+
+
 #include "heapfile.h"
 #include "error.h"
 
 //Remove later
 #include "stdio.h"
 
-//TODO Input validation, Use of dirtyPageFlag
+//TODO Input validation
 
 // routine to create a heapfile
 /* This function creates an empty (well, almost empty) heap file. To do this create a db level
@@ -20,6 +40,19 @@ attributes of the FileHdrPage.
 
 
 // When you have done all this unpin both pages and mark them as dirty.
+
+/* *
+ * Allocates a free frame through the implementation of the clock
+ * algorithm. It returns the newly freed frame through the parameter "frame".
+ *
+ * @param frame - holds the allocated frame number
+ *
+ * @return status - returns...
+ *      BUFFEREXCEEDED if there are no buffer frames free to allocate.
+ *      UNIXERR if there is an error when writing the dirty page to disk.
+ *      OK if successful.
+ *
+ * */
 
 const Status createHeapFile(const string fileName)
 {
