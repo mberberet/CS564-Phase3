@@ -405,17 +405,7 @@ const Status HeapFileScan::scanNext(RID& outRid)
             return curRec;
         }
     }
-    // Remember to unpin page once you are done with it
-      
-    
-    
-    
-    
-    
-    
-    
-    
-    
+   
 }
 
 
@@ -602,7 +592,7 @@ const Status InsertFileScan::insertRecord(const Record & rec, RID& outRid)
     }
     // Unpin Header?
     headerPage->recCnt++;
-    hdrDirtyFlag->true;
+    hdrDirtyFlag = true;
     outRid = rid;
     return OK;
 }
