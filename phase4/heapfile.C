@@ -4,7 +4,7 @@
 //Remove later
 #include "stdio.h"
 
-//TODO Input validation
+//TODO Input validation, Use of dirtyPageFlag
 
 // routine to create a heapfile
 /* This function creates an empty (well, almost empty) heap file. To do this create a db level
@@ -342,19 +342,10 @@ const Status HeapFileScan::scanNext(RID& outRid)
     if (status != OK){
         return status;
     }
-    
-    status = curPage->getRecord(curRec, rec);
-    if (status != OK){
-        return status;
-    } 
+   
+    tmpRid = curRec;
 
-    if (matchRec(rec)){
-        return curRec;
-    }
-
-    tmpRid = curRid;
-
-    while (){
+    while (1){
         status = curPage->nextRecord(tmpRid, nextRid);
         if (status == ENDOFPAGE){
             int nextPageNo;
@@ -364,12 +355,12 @@ const Status HeapFileScan::scanNext(RID& outRid)
                 return status;
             }
 
-            status = bufMgr->unPinPage(file, curPageNo, curDirtyFlag);
+            status = bufMgr->unPinPage(filePtr, curPageNo, curDirtyFlag);
             if (status != OK){
                 return status;
             }
 
-            status = bufMgr->readPage(filePtr, nextPageNo, curPage) 
+            status = bufMgr->readPage(filePtr, nextPageNo, curPage);
             if (status != OK){
                 return status;
             }
@@ -379,7 +370,7 @@ const Status HeapFileScan::scanNext(RID& outRid)
                 return status;
             } 
              
-            status = bufMgr->unPinPage(file, curPageNo, curDirtyFlag);
+            status = bufMgr->unPinPage(filePtr, curPageNo, curDirtyFlag);
             if (status != OK){
                 return status;
             }           
@@ -389,26 +380,19 @@ const Status HeapFileScan::scanNext(RID& outRid)
         if (status != OK){
             return status;
         } 
-
+        curRec = tmpRid;
         if (matchRec(rec)){
-            status = bufMgr->unPinPage(file, curPageNo, curDirtyFlag);
+            status = bufMgr->unPinPage(filePtr, curPageNo, curDirtyFlag);
             if (status != OK){
                 return status;
             } 
-            return curRec;
+            outRid = curRec;
         }
     }
     // Remember to unpin page once you are done with it
-      
-    
-    
-    
-    
-    
-    
-    
-    
-    
+         
+    return OK;
+   
 }
 
 
@@ -593,8 +577,9 @@ const Status InsertFileScan::insertRecord(const Record & rec, RID& outRid)
             return status;
         }
     }
-
+    // Unpin Header?
     headerPage->recCnt++;
+    hdrDirtyFlag = true;
     outRid = rid;
     return OK;
 }
