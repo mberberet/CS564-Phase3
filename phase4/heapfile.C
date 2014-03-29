@@ -20,8 +20,6 @@
 #include "heapfile.h"
 #include "error.h"
 
-//Remove later
-#include "stdio.h"
 
 //TODO Input validation
 
@@ -122,11 +120,17 @@ const Status destroyHeapFile(const string fileName)
 }
 
 
-// constructor opens the underlying file
-/*As discussed above, a heap file consists of one file header page and 1 or more data pages. The HeapFile class provides a set of methods to manipulate heap files including adding and deleting records and scanning all records in a file. Creating an instance of the heapFile class opens the heap file and reads the file header page and the first data page into the buffer pool.
-
-This method first opens the appropriate file by calling db->openFile() (do not forget to save the File* returned in the filePtr data member). Next, it reads and pins the header page for the file in the buffer pool, initializing the private data members headerPage, headerPageNo, and hdrDirtyFlag. You might be wondering how you get the page number of the header page. This is what file->getFirstPage() is used for (see description of the I/O layer)! Finally, read and pin the first page of the file into the buffer pool, initializing the values of curPage, curPageNo, and curDirtyFlag appropriately. Set curRec to NULLRID.
-*/
+/* *
+ * Constructor for a HeapFile Object. Reads the header page and first page
+ * and initializes all relevant variables.
+ *
+ * @param fileName - the name of the file to open
+ * @param returnStatus - the status to be returned (see below)
+ *
+ * @return status - returns...
+ *      OK if successful.
+ *
+ * */
 HeapFile::HeapFile(const string & fileName, Status& returnStatus)
 {
     Status  status;
@@ -172,8 +176,6 @@ HeapFile::HeapFile(const string & fileName, Status& returnStatus)
 
 
 // the destructor closes the file
-/*The destructor first unpins the header page and currently pinned data page and then calls db->closeFile
-*/
 HeapFile::~HeapFile()
 {
     Status status;
@@ -261,7 +263,6 @@ const Status HeapFile::getRecord(const RID & rid, Record & rec)
 }
 
 
-
 HeapFileScan::HeapFileScan(const string & name,
                Status & status) : HeapFile(name, status)
 {
@@ -269,8 +270,6 @@ HeapFileScan::HeapFileScan(const string & name,
 }
 
 
-/*This method initiates a scan over a file. If filter == NULL, an unconditional scan is performed meaning that the scan will return all the records in the file. Otherwise, the data members of the HeapFileScan object are initialized with the parameters to the method.
-*/
 const Status HeapFileScan::startScan(const int offset_,
                      const int length_,
                      const Datatype type_, 
@@ -301,8 +300,6 @@ const Status HeapFileScan::startScan(const int offset_,
 }
 
 
-/* This method terminates a scan over a file but does not delete the scan object.  This will allow the scan object to be reused for another scan.
-*/
 const Status HeapFileScan::endScan()
 {
     Status status;
@@ -325,8 +322,6 @@ HeapFileScan::~HeapFileScan()
 }
 
 
-/* Saves the current position of the scan by preserving the values of curPageNo and curRec in the private data members markedPageNo and markedRec, respectively.
-*/
 const Status HeapFileScan::markScan()
 {
     // make a snapshot of the state of the scan
@@ -336,8 +331,6 @@ const Status HeapFileScan::markScan()
 }
 
 
-/* Resets the position of the scan to the position when the scan was last marked by restoring the values of curPageNo and curRec from markedPageNo and markedRec, respectively. Unless the page number of the currently pinned page is the same as the marked page number, unpin the currently pinned page, then read markedPageNo from disk and set curPageNo, curPage, curRec, and curDirtyFlag appropriately.
-*/
 const Status HeapFileScan::resetScan()
 {
     Status status;
@@ -428,8 +421,6 @@ const Status HeapFileScan::scanNext(RID& outRid)
 
 // returns pointer to the current record.  page is left pinned
 // and the scan logic is required to unpin the page 
-/* Returns (via the rec parameter) the record whose rid is stored in curRec. The page containing the record should already be pinned in the buffer pool (by a preceding scanNext() call). If not, return BADPAGENO. A pointer to the pinned page can be found in curPage. Just invoke Page::getRecord() on this page and return its status value.
-*/
 const Status HeapFileScan::getRecord(Record & rec)
 {
     return curPage->getRecord(curRec, rec);
@@ -437,8 +428,6 @@ const Status HeapFileScan::getRecord(Record & rec)
 
 
 // delete record from file. 
-/* Deletes the record with RID whose rid is stored in curRec from the file by calling Page::deleteRecord. The record must be a record on the "current" page of the scan. Returns BADPAGENO if the page number of the record (i.e. curRec.pageNo) does not match curPageNo, otherwise OK.
-*/
 const Status HeapFileScan::deleteRecord()
 {
     Status status;
@@ -455,8 +444,6 @@ const Status HeapFileScan::deleteRecord()
 
 
 // mark current page of scan dirty
-/* Marks the current page of the scan dirty by setting the dirtyFlag. The dirtyFlag should be reset every time a page is pinned. Make sure that when you unpin a page in the buffer pool, that you pass dirtyFlag as a parameter to the unpin call. Returns OK if no errors. The page containing the record should already be pinned in the buffer pool.
-*/
 const Status HeapFileScan::markDirty()
 {
     curDirtyFlag = true;
@@ -464,8 +451,6 @@ const Status HeapFileScan::markDirty()
 }
 
 
-/* This private method determines whether the record rec satisfies the predicate associated with the scan. It takes care of attributes not being aligned properly. Returns true if the record satisfies the predicate, false otherwise. We will provide this method for you.
-*/
 const bool HeapFileScan::matchRec(const Record & rec) const
 {
     // no filtering requested
@@ -521,8 +506,6 @@ const bool HeapFileScan::matchRec(const Record & rec) const
 }
 
 
-/* Again this constructor will get invoked after the HeapFile constructor is invoked since InsertFileScan is derived from the HeapFile class. See the test program for examples of how this constructor is used.
-*/
 InsertFileScan::InsertFileScan(const string & name,
                                Status & status) : HeapFile(name, status)
 {
@@ -531,8 +514,6 @@ InsertFileScan::InsertFileScan(const string & name,
 }
 
 
-/* Unpins the last page of the scan and then returns.  The HeapFile destructor will be automatically invoked
-*/
 InsertFileScan::~InsertFileScan()
 {
     Status status;
@@ -546,17 +527,18 @@ InsertFileScan::~InsertFileScan()
     }
 }
 
-
-/* 
- * Inserts the record described by rec into the file returning the RID of the inserted record in outRid.
- */
-// Insert a record into the file
-// TODO UNPIN??
+/* *
+ * Inserts a record into the heap file. 
+ * 
+ * @return status - returns...
+ *      OK if successful.
+ *
+ * */
 const Status InsertFileScan::insertRecord(const Record & rec, RID& outRid)
 {
     Page *  newPage; 
     int     newPageNo;
-    Status  status; // unpinstatus;
+    Status  status; 
     RID     rid;
 
     // check for very large records
@@ -566,35 +548,40 @@ const Status InsertFileScan::insertRecord(const Record & rec, RID& outRid)
         return INVALIDRECLEN;
     }
    
+    // Check if the last page is already in the buffer pool
     if (headerPage->lastPage != curPageNo) {
+        // Page isn't in buffer pool, unpin current page
         status = bufMgr->unPinPage(filePtr, headerPage->lastPage, curDirtyFlag);
         if (status != OK){
             return status;
         }
-        
+        // Get last page
         if ((status = bufMgr->readPage(filePtr, headerPage->lastPage, curPage)) != OK) {
             return status;
         }
         curPageNo = headerPage->lastPage;
         curDirtyFlag = false;
     }
- 
+    
+    // Try inserting a record
     status = curPage->insertRecord(rec, rid);
 
+    // If there is no space, need to create a new page
     if (status == NOSPACE) {
-        // Create new page
-        // Ensure page is now last page of heapfile
         status = bufMgr->allocPage(filePtr, newPageNo, newPage);
         if (status != OK){
             return status;
         }
         newPage->init(newPageNo);
 
+        // Ensure previous last page points to new last page
         curPage->setNextPage(newPageNo);
         status = bufMgr->unPinPage(filePtr, headerPage->lastPage, curDirtyFlag);
         if (status != OK){
             return status;
         }
+
+        // Ensure page is now last page of heapfile
         curPage = newPage;
         curPageNo = newPageNo;
         headerPage->lastPage = newPageNo;
@@ -607,7 +594,6 @@ const Status InsertFileScan::insertRecord(const Record & rec, RID& outRid)
         }
     }
     curDirtyFlag = true;
-    // Unpin Header?
     headerPage->recCnt++;
     hdrDirtyFlag = true;
     outRid = rid;
