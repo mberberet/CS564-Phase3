@@ -18,11 +18,11 @@ contents.  Finally, store the page number of the data page in firstPage and last
 attributes of the FileHdrPage.
 */
 
-<<<<<<< HEAD
+//<<<<<<< HEAD
 // When you have done all this unpin both pages and mark them as dirty.
-=======
+//=======
 //When you have done all this unpin both pages and mark them as dirty.
->>>>>>> dd5bbb2e10a060f711598be2147e578969cd5782
+//>>>>>>> dd5bbb2e10a060f711598be2147e578969cd5782
 const Status createHeapFile(const string fileName)
 {
     File*       file;
@@ -84,17 +84,17 @@ const Status createHeapFile(const string fileName)
     }
     return (FILEEXISTS);
 }
-<<<<<<< HEAD
-/*This is easy. Simply call db->destroyFile(). The user is expecte/* 
+//<<<<<<< HEAD
+/*This is easy. Simply call db->destroyFile(). The user is expecte 
  * This call is kind of weird. The first step is to allocate an empty page in the specified file by invoking the file->allocatePage() method. This method will return the page number of the newly
  * allocated page. Then allocBuf() is called to obtain a buffer pool frame. Next, an entry is inserted into the hash table and Set() is invoked on the frame to set it up properly. The method returns
  * both the page number of the newly allocated page to the caller via the pageNo parameter and a pointer to the buffer frame allocated for the page via the page parameter. Returns OK if no errors
  * occurred, UNIXERR if a Unix error occurred, BUFFEREXCEEDED if all buffer frames are pinned and HASHTBLERROR if a hash table error occured.
- */d to have closed all instances of the file before calling this function.
+ d to have closed all instances of the file before calling this function.
 =======
 
 
-/*This is easy. Simply call db->destroyFile(). The user is expected to have closed all instances of the file before calling this function.
+This is easy. Simply call db->destroyFile(). The user is expected to have closed all instances of the file before calling this function.
 >>>>>>> dd5bbb2e10a060f711598be2147e578969cd5782
 */
 // routine to destroy a heapfile
@@ -209,13 +209,23 @@ and use the pageNo field of the RID to read the page into the buffer pool.
 const Status HeapFile::getRecord(const RID & rid, Record & rec)
 {
    Status status;
- 
+   int pageNo;
    cout<< "getRecord. record (" << rid.pageNo << "." << rid.slotNo << ")" << endl;
    status = curPage-> getRecord(rid, rec);
-   while (status != ok){
-   status =  curPage -> nextRecord(rid
-   status =  curPage -> getRecord(rid, rec);
-   
+   while (status != OK) {
+     
+     if (( status = curPage -> getNextPage(pageNo)) != OK) {
+        return status;
+     }
+     if ((status = bufMgr -> unPinPage (filePtr, curPageNo, false)) != OK){
+        return status;
+     } 
+     curPageNo = pageNo; 
+     if ((status = bufMgr -> readPage (filePtr, curPageNo, curPage)) != OK){
+        return status;
+     } 
+     
+     status =  curPage -> getRecord(rid, rec);
    
    }
    
@@ -259,9 +269,9 @@ const Status HeapFileScan::startScan(const int offset_,
     }
     
     if ((offset_ < 0 || length_ < 1) ||
-        (type_ != STRING && type_ != INTEGER && type_ != FLOAT) ||
+        ((type_ != STRING && type_ != INTEGER && type_ != FLOAT)) ||
         (type_ == INTEGER && length_ != sizeof(int)
-         || type_ == FLOAT && length_ != sizeof(float)) ||
+         ||( type_ == FLOAT && length_ != sizeof(float))) ||
         (op_ != LT && op_ != LTE && op_ != EQ && op_ != GTE && op_ != GT && op_ != NE))
     {
         return BADSCANPARM;
@@ -342,20 +352,19 @@ const Status HeapFileScan::resetScan()
 //TODO
 const Status HeapFileScan::scanNext(RID& outRid)
 {
-    Status  status = OK;
+ /*   Status  status = OK;
     RID     nextRid;
     RID     tmpRid;
     int     nextPageNo;
     Record      rec;
     
-/*    status = bufMgr->readPage(filePtr, curPageNo, curPage);
+    status = bufMgr->readPage(filePtr, curPageNo, curPage);
         if (status != OK) return status;
     
     if (matchRec(rec)) {
        return () 
     }
     
-  */    
     
     
     
@@ -364,6 +373,7 @@ const Status HeapFileScan::scanNext(RID& outRid)
     
     
     
+*/    
 }
 
 
@@ -498,7 +508,7 @@ const Status InsertFileScan::insertRecord(const Record & rec, RID& outRid)
     Page *  newPage; 
     Page *  curLastPage;
     int     newPageNo;
-    Status  status, unpinstatus;
+    Status  status; // unpinstatus;
     RID     rid;
 
     // check for very large records
