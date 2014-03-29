@@ -22,8 +22,6 @@
 #include "error.h"
 
 
-//TODO Input validation
-
 // routine to create a heapfile
 /* This function creates an empty (well, almost empty) heap file. To do this create a db level
 file by calling db->createfile(). Then, allocate an empty page by invoking bm->allocPage()
