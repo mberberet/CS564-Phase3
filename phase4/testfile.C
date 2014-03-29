@@ -39,7 +39,8 @@ int main(int argc, char **argv)
     bufMgr = new BufMgr(101);
 
     int i,j;
-    int num = 10120;
+//    int num = 10120;
+    int num = 50;
     Record dbrec1;
     RID*  ridArray;
 
@@ -122,7 +123,7 @@ int main(int argc, char **argv)
 		cout << "getRecord() tests passed successfully" << endl;
     }
     delete file1;
-    
+/*    
     // scan the file sequentially checking that each record was stored properly
     cout << "scan file dummy.02 " << endl;
     scan1 = new HeapFileScan("dummy.02", status);
@@ -688,7 +689,7 @@ int main(int argc, char **argv)
 
     cout << endl << "Done testing." << endl;
     return 1;
-
+*/
 }
 
 

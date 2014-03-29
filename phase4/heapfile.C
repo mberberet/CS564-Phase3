@@ -196,10 +196,11 @@ const Status HeapFile::getRecord(const RID & rid, Record & rec)
 {
    Status status;
    int pageNo;
-   cout<< "getRecord. record (" << rid.pageNo << "." << rid.slotNo << ")" << endl;
+//   cout<< "getRecord. record (" << rid.pageNo << "." << rid.slotNo << ")" << endl;
    status = curPage-> getRecord(rid, rec);
+    printf("Hello\n");
    while (status != OK) {
-     
+    printf("Loopy\n"); 
      if (( status = curPage -> getNextPage(pageNo)) != OK) {
         return status;
      }
@@ -214,11 +215,8 @@ const Status HeapFile::getRecord(const RID & rid, Record & rec)
      status =  curPage -> getRecord(rid, rec);
    
    }
-   
+
   return status;
-   
-   
-   
 }
 
 
