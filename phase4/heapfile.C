@@ -108,13 +108,10 @@ HeapFile::HeapFile(const string & fileName, Status& returnStatus)
         // Read in header page
         if ((status = filePtr->getFirstPage(headerPageNo)) != OK) {
             returnStatus = status;
-            printf("Issue here 1\n");
             return;
         }
         if ((status = bufMgr->readPage(filePtr, headerPageNo, pagePtr)) != OK) {
             returnStatus = status;
-            printf("Issue here 2\n");
-
             return;
         }
         headerPage = (FileHdrPage *) pagePtr;
@@ -124,14 +121,13 @@ HeapFile::HeapFile(const string & fileName, Status& returnStatus)
         status = bufMgr->readPage(filePtr, headerPage->firstPage, curPage);
         if (status != OK) {
             returnStatus = status;
-            printf("Issue here 3\n");
-
             return;
         }
         curPageNo = headerPage->firstPage;
         curDirtyFlag = false;
         curRec = NULLRID;
-    
+        returnStatus = OK;
+        return;
     }
     else
     {
@@ -228,17 +224,10 @@ const Status HeapFile::getRecord(const RID & rid, Record & rec)
 }
 
 
-/*First note that the protected data members curPage, curPageNo, curRec, and curDirtyFlag should be used to implement the scan mechanism.
-
-The other private data members are used to implement conditional or filtered scans. length is the size of the field on which predicate is applied and offset is its position within the record (we consider fixed length attributes only). The type of the attribute can be STRING, INTEGER or FLOAT and is defined in heapFile.h  Similarly all ordinary comparison operators (as defined in heapFile.h) must be supported. The value to be compared against is stored in binary form and is pointed to by filter
-i*/
-
 /*
 Initializes the data members of the object and then opens the appropriate heapfile by calling the HeapFile constructor with the name of the file. The status of all these operations is indicated via the status parameter.
 
 For those of you new to C++, since HeapFileScan is derived from HeapFile, the constructor for the HeapFile class is invoked before the HeapFileScan constructor is invoked.
-
-Shuts down the scan by calling endScan().  After the HeapFileScan destructor is invoked, the HeapFile destructor will be automatically invoked
 */
 HeapFileScan::HeapFileScan(const string & name,
                Status & status) : HeapFile(name, status)
@@ -363,12 +352,13 @@ const Status HeapFileScan::scanNext(RID& outRid)
         status = curPage->nextRecord(tmpRid, nextRid);
         if (status == ENDOFPAGE){
 
+            if (curPageNo == headerPage->lastPage) {
+                return FILEEOF;
+            }
             status = curPage->getNextPage(nextPageNo);
             if (status != OK){
                 return status;
-            } else if (nextPageNo == -1) {
-                return FILEEOF;
-            }
+            } 
             
             status = bufMgr->unPinPage(filePtr, curPageNo, curDirtyFlag);
             if (status != OK){
@@ -424,6 +414,7 @@ const Status HeapFileScan::deleteRecord()
 
     // delete the "current" record from the page
     status = curPage->deleteRecord(curRec);
+    printf("Deleted (%d.%d)\n", curRec.pageNo, curRec.slotNo);
     curDirtyFlag = true;
 
     // reduce count of number of records in the file

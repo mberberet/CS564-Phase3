@@ -39,8 +39,8 @@ int main(int argc, char **argv)
     bufMgr = new BufMgr(101);
 
     int i,j;
-    int num = 10120;
-//    int num = 50;
+//    int num = 10120;
+    int num = 50;
     Record dbrec1;
     RID*  ridArray;
 
@@ -189,7 +189,7 @@ int main(int argc, char **argv)
     scan1->endScan();
     delete scan1;
     scan1 = NULL;
-/*	    
+	    
     // pull every 7th record from the file directly w/o opening a scan
     // by using the file->getRecord() method
     cout << endl;
@@ -233,11 +233,11 @@ int main(int argc, char **argv)
 		deleted = 0;
 		while ((status = scan1->scanNext(rec2Rid)) != FILEEOF)
 		{
-			// cout << "processing record " << i << i << endl;
+			 cout << "processing record " << i << i << endl;
 			if (status != OK) error.print(status);
 			if ((i % 2) != 0)
 			{
-				//printf("deleting record %d with rid(%d.%d)\n",i,rec2Rid. pageNo, rec2Rid.slotNo);
+				printf("deleting record %d with rid(%d.%d)\n",i,rec2Rid. pageNo, rec2Rid.slotNo);
 				status = scan1->deleteRecord(); 
 				deleted++;
 				if ((status != OK)  && ( status != NORECORDS))
