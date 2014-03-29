@@ -347,7 +347,7 @@ const Status HeapFileScan::scanNext(RID& outRid)
     }
   */ 
     tmpRid = curRec;
-    if (curRec = NULLRID) {
+    if (tmpRid == NULLRID) {
         printf("Was Null Rid\n");
     }
     while (!found){
