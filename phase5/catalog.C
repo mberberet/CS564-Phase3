@@ -77,7 +77,7 @@ const Status AttrCatalog::getInfo(const string & relation,
         return status;
     }
     
-    status = hfs->startScan(0, sizeof(relation), String, filter, operator);
+    status = hfs->startScan(0, MAXNAME, STRING, attrName, EQ);
     if (status != OK) {
         return status;
     }
