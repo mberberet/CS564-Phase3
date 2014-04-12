@@ -92,7 +92,7 @@ const Status AttrCatalog::getInfo(const string & relation,
         return status;
     }
     
-    status = hfs->startScan(0, sizeof(relation), String, filter, operator);
+    status = hfs->startScan(0, MAXNAME, STRING, relation, EQ);
     if (status != OK) {
         return status;
     }
@@ -108,10 +108,10 @@ const Status AttrCatalog::getInfo(const string & relation,
             break;
         }
 
-        AttrDesc * attrDesc = rec.data;
+        AttrDesc * attrDesc = (AttrDesc) rec.data;
         
-        if (attrDesc->attrName == AttrName.c_str()) {
-            memcpy(&record, rec.data,rec.length);
+        if (strcmp(attrDesc->attrName, AttrName.c_str()) == 0) {
+            memcpy(&record, rec.data, rec.length);
             return status;
         }
     }
