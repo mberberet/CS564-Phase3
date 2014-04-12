@@ -15,15 +15,19 @@ const Status RelCatalog::destroyRel(const string & relation)
 {
   Status status;
 
-  if (relation.empty() || 
-      relation == string(RELCATNAME) || 
-      relation == string(ATTRCATNAME))
-    return BADCATPARM;
+    if (relation.empty() || relation == string(RELCATNAME) || 
+        relation == string(ATTRCATNAME)) {
+        return BADCATPARM;
+    }
 
+    if ((status = attrCat->dropRelation(relation)) != OK) {
+        return status;
+    }
+    if ((status = destroyHeapFile(relation)) != OK) {
+        return status;
+    }
 
-
-
-
+    return OK;
 }
 
 
@@ -39,16 +43,20 @@ const Status RelCatalog::destroyRel(const string & relation)
 
 const Status AttrCatalog::dropRelation(const string & relation)
 {
-  Status status;
-  AttrDesc *attrs;
-  int attrCnt, i;
+    Status status;
+    AttrDesc *attrs;
+    int attrCnt, i;
+    
 
-  if (relation.empty()) return BADCATPARM;
+    if (relation.empty()) return BADCATPARM;
 
+    
 
-
-
-
+    if ((status = relCat->destroyRel(relation)) != OK) {
+        return status;
+    }
+   
+    return OK;
 }
 
 
