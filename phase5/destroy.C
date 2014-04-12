@@ -23,6 +23,11 @@ const Status RelCatalog::destroyRel(const string & relation)
     if ((status = attrCat->dropRelation(relation)) != OK) {
         return status;
     }
+
+    if ((status = relCat->destroyRel(relation)) != OK) {
+        return status;
+    }
+
     if ((status = destroyHeapFile(relation)) != OK) {
         return status;
     }
@@ -46,16 +51,34 @@ const Status AttrCatalog::dropRelation(const string & relation)
     Status status;
     AttrDesc *attrs;
     int attrCnt, i;
-    
+    HeapFileScan *scan;
+    RID rid;
+    Record rec;
 
     if (relation.empty()) return BADCATPARM;
 
-    
+    scan = new HeapFileScan(relation, status)
+    if (status != OK) {
+        return
+    }
 
-    if ((status = relCat->destroyRel(relation)) != OK) {
+    status = scan->startScan(0, MAXNAME, STRING, relation, EQ);
+    if (status != OK) {
         return status;
     }
-   
+
+    while (status != FILEEOF) {
+        status = scan->scanNext(rid);
+        if (status != OK) {
+            return status;
+        }
+
+        status = scan->deleteRecord();
+        if (status != OK) {
+            return status;
+        }
+    }
+
     return OK;
 }
 
