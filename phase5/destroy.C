@@ -51,29 +51,15 @@ const Status AttrCatalog::dropRelation(const string & relation)
     Status status;
     AttrDesc *attrs;
     int attrCnt, i;
-    HeapFileScan *scan;
-    RID rid;
-    Record rec;
 
     if (relation.empty()) return BADCATPARM;
-
-    scan = new HeapFileScan(relation, status)
-    if (status != OK) {
-        return
-    }
-
-    status = scan->startScan(0, MAXNAME, STRING, relation, EQ);
+    
+    status = attrCal->getRelInfo(relation, attrCnt, attrs);
     if (status != OK) {
         return status;
     }
-
-    while (status != FILEEOF) {
-        status = scan->scanNext(rid);
-        if (status != OK) {
-            return status;
-        }
-
-        status = scan->deleteRecord();
+    for (i = 0; i < attrCnt, i++) {
+        status = attrCat->removeInfo(relation, attrs[i].attrName.c_str());
         if (status != OK) {
             return status;
         }
