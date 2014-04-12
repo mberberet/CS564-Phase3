@@ -22,12 +22,12 @@ const Status RelCatalog::getInfo(const string & relation, RelDesc &record)
     if (status != OK){
     return status;
     }
-    status = scan1->startScan(0, MAXNAME, STRING, relation, EQ); 
+    status = scan1->startScan(0, MAXNAME, STRING, relation.c_str(), EQ); 
     if (status != OK) {
         return status;
     }
     status = scan1->scanNext(rid);
-    if (status != Ok){
+    if (status != OK){
         return status;
     }
     status = getRecord(rid, rec);
@@ -85,10 +85,37 @@ const Status AttrCatalog::getInfo(const string & relation,
   Record rec;
   HeapFileScan*  hfs;
 
-  if (relation.empty() || attrName.empty()) return BADCATPARM;
+  if (relation.empty() || attrName.empty()) return BADCATPARM;  
+    hfs = new HeapFileScan(ATTRCATNAME, status);
+    if (status != OK) {
+        return status;
+    }
+    
+    status = hfs->startScan(0, MAXNAME, STRING, relation, EQ);
+    if (status != OK) {
+        return status;
+    }
 
+    while (true) {
+        status = hfs->scanNext(rid);
+        if (status != OK) {
+            break;
+        }
+        
+        status = hfs->getRecord(rec);
+        if (status != OK) {
+            break;
+        }
 
-
+        AttrDesc * attrDesc = (AttrDesc) rec.data;
+        
+        if (strcmp(attrDesc->attrName, AttrName.c_str()) == 0) {
+            memcpy(&record, rec.data, rec.length);
+            return status;
+        }
+    }
+    
+    return status;
 
 }
 
