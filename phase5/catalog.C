@@ -1,5 +1,5 @@
 #include "catalog.h"
-
+#include "heapfile.h"
 
 RelCatalog::RelCatalog(Status &status) :
 	 HeapFile(RELCATNAME, status)
@@ -10,16 +10,31 @@ RelCatalog::RelCatalog(Status &status) :
 
 const Status RelCatalog::getInfo(const string & relation, RelDesc &record)
 {
-  if (relation.empty())
-    return BADCATPARM;
+    if (relation.empty())
+        return BADCATPARM;
 
-  Status status;
-  Record rec;
-  RID rid;
-
-
-
-
+    Status status;
+    Record rec;
+    RID rid;
+    HeapFileScan *scan1;
+   
+    scan1 = new  HeapFileScan(relation, status);
+    status = scan1->startScan(0, MAXNAME, STRING, relation, EQ); 
+    if (status != OK) {
+        return status;
+    }
+    status = scan1->scanNext(rid);
+    while (status != OK){
+        if (status == FILEEOF){ 
+            return status;
+        }
+        status = scan1->scanNext(rid);
+    }
+    status = getRecord(rid, rec);
+    if (status != OK){
+        return status;
+    }
+    memcpy(&record, &rec, rec.length);
 }
 
 
