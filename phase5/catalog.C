@@ -86,9 +86,37 @@ const Status AttrCatalog::getInfo(const string & relation,
   HeapFileScan*  hfs;
 
   if (relation.empty() || attrName.empty()) return BADCATPARM;
+  
+    hfs = new HeapFileScan(ATTRCATNAME, status);
+    if (status != OK) {
+        return status;
+    }
+    
+    status = hfs->startScan(0, sizeof(relation), String, filter, operator);
+    if (status != OK) {
+        return status;
+    }
 
+    while (true) {
+        status = hfs->scanNext(rid);
+        if (status != OK) {
+            break;
+        }
+        
+        status = hfs->getRecord(rec);
+        if (status != OK) {
+            break;
+        }
 
-
+        AttrDesc * attrDesc = rec.data;
+        
+        if (attrDesc->attrName == AttrName.c_str()) {
+            memcpy(&record, rec.data,rec.length);
+            return status;
+        }
+    }
+    
+    return status;
 
 }
 
