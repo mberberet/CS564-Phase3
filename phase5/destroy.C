@@ -51,15 +51,16 @@ const Status AttrCatalog::dropRelation(const string & relation)
     Status status;
     AttrDesc *attrs;
     int attrCnt, i;
-
+    
     if (relation.empty()) return BADCATPARM;
     
-    status = attrCal->getRelInfo(relation, attrCnt, attrs);
+    status = attrCat->getRelInfo(relation, attrCnt, attrs);
     if (status != OK) {
         return status;
     }
-    for (i = 0; i < attrCnt, i++) {
-        status = attrCat->removeInfo(relation, attrs[i].attrName.c_str());
+    for (i = 0; i < attrCnt; i++) {
+        string str(attrs[i].attrName);
+        status = attrCat->removeInfo(relation, str);
         if (status != OK) {
             return status;
         }
