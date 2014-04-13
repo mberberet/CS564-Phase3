@@ -167,23 +167,31 @@ const Status AttrCatalog::getInfo(const string & relation,
 }
 
 
+/* *
+ * Adds a tuple to the attrcat relation. The tuple represents an attribute
+ *  of a relation.
+ *
+ * @param record - The data for the tuple to be added.
+ *
+ * @return status - returns...
+ *      OK if successful
+ *      errors otherwise
+ * */
 const Status AttrCatalog::addInfo(AttrDesc & record)
 {
     RID rid;
     InsertFileScan*  ifs;
     Status status;
-//start frank////////////////////////////////////////////////
     Record rec;
+
+    // Want to insert the record into the ATTRCATNAME
     ifs = new InsertFileScan(ATTRCATNAME, status);
     if (status != OK) {
         delete ifs;
         return status;
     }
-/*    int len = strlen(record.relName);
-    memset(&record.attrName[len], 0, sizeof record.relName - len);
-    len = strlen(record.attrName);
-    memset(&record.attrName[len], 0, sizeof record.attrName - len);*/
-    //memcpy(rec.data, &record, sizeof(record));
+
+    // Prep the record
     rec.data = &record;
     rec.length = sizeof(AttrDesc);
 
@@ -195,35 +203,47 @@ const Status AttrCatalog::addInfo(AttrDesc & record)
 
     delete ifs;
     return status;
-//end frank////////////////////////////////////////////////
 }
 
 
+/* *
+ * Removes a tuple representing an attribute from the attrcat relation.
+ *
+ * @param relation - the relation the tuple belongs to
+ * @param attrName - the name of the attribute to remove
+ *
+ * @return status - returns...
+ *      OK if successful
+ *      errors otherwise
+ * */
 const Status AttrCatalog::removeInfo(const string & relation,
 			       const string & attrName)
 {
-  Status status;
-  Record rec;
-  RID rid;
-  AttrDesc record;
-  HeapFileScan*  hfs;
+    Status status;
+    Record rec;
+    RID rid;
+    AttrDesc record;
+    HeapFileScan*  hfs;
 
-  if (relation.empty() || attrName.empty()) return BADCATPARM;
-//start frank///////////////////////////////////////////////
+    if (relation.empty() || attrName.empty()) return BADCATPARM;
+
     hfs = new HeapFileScan(ATTRCATNAME, status);
     if (status != OK) {
         delete hfs;
         return status;
     }
 
+    // Want to get objects that belong to the relation name
     status = hfs->startScan(0, MAXNAME, STRING, relation.c_str(), EQ);
     if (status != OK) {
         delete hfs;
         return status;
     }
 
+    // Scan for tuples until we find the desired tuple or reach the EOF
     while (1) {
         status = hfs->scanNext(rid);
+        // If FILEEOF, the attribute isn't in the attrCat
         if (status == FILEEOF) {
             status = ATTRNOTFOUND;
             break;
@@ -231,6 +251,7 @@ const Status AttrCatalog::removeInfo(const string & relation,
             break;
         }
 
+        // Fetch the record
         status = hfs->getRecord(rec);
         if (status != OK) {
             break;
@@ -238,15 +259,17 @@ const Status AttrCatalog::removeInfo(const string & relation,
 
         record = *((AttrDesc*) rec.data);
 
+        // Check if the record belong to the relation is the one we
+        // are looking to delete
         if (strcmp(record.attrName, attrName.c_str()) == 0) {
             status = hfs->deleteRecord();
             delete hfs;
             return status;
         }
     }
+
     delete hfs;
     return status;
-//end frank/////////////////////////////////////////////////
 }
 
 
