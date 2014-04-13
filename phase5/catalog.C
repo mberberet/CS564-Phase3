@@ -1,5 +1,26 @@
+/*
+ * File:		    catalog.C	
+ * Semester:		CS564 Spring 2014
+ *
+ * Author:		Michael Berberet
+ * CS login:		berberet
+ *
+ * Partner:	    Casey Lanham	
+ * CS login:        lanham
+ *
+ * Partner:     Xuelong Zhang
+ * CS login:        xuelong
+ *
+ * Purpose: implement functions of RelCatalog and AttrCatalog to provide the
+ * functionality of the operating on Catalogs 
+ *
+ */
+
+
 #include "catalog.h"
 #include "heapfile.h"
+
+
 
 RelCatalog::RelCatalog(Status &status) :
 	 HeapFile(RELCATNAME, status)
@@ -7,6 +28,17 @@ RelCatalog::RelCatalog(Status &status) :
 // nothing should be needed here
 }
 
+/* *
+ * finds and returns the desired tuple of the relation 
+ *
+ * @param relation - holds the relation 
+ * @param record   - holds the tuple that will be returned  
+ *
+ * @return status - returns...
+ *                  OK if successful.
+ *                  RELNOTFOUND if we reach the end of the file
+ *                  without finding the touple
+ * */
 
 const Status RelCatalog::getInfo(const string & relation, RelDesc &record)
 {
@@ -46,6 +78,18 @@ const Status RelCatalog::getInfo(const string & relation, RelDesc &record)
     return OK;
 }
 
+/* *
+ * Adds the relation descriptor contained in record to the
+ * relcat relation
+ *
+ * @param record - holds the descriptor to be added to
+ *                 the relcat relation
+ *
+ * @return status - returns...
+ *                  OK if successful.
+ *                  an errorcode if not 
+ *
+ * */
 
 const Status RelCatalog::addInfo(RelDesc & record)
 {
@@ -70,6 +114,17 @@ const Status RelCatalog::addInfo(RelDesc & record)
     return OK;
 
 }
+/* 
+ * Removes the tuple correspinding to relName from relcat. 
+ *
+ * @param relation - the relation to be removed
+ *
+ * @return status - returns...
+ *      OK if successful.
+ *      RELNOTFOUND if we reach the end of file without finding the relation
+ *      error code if not done correctly 
+ *
+ * */
 
 const Status RelCatalog::removeInfo(const string & relation)
 {
