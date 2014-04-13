@@ -109,7 +109,7 @@ const Status UT_Print(string relation)
     printf("%-*.*s ", attrWidth[i], attrWidth[i],
 	   attrs[i].attrName);
   }
-  printf("here\n");
+  printf("\n");
 
   for(i = 0; i < attrCnt; i++) {
     for(int j = 0; j < attrWidth[i]; j++)
