@@ -1,5 +1,23 @@
+/*
+ * File:		    destroy.C
+ * Semester:		CS564 Spring 2014
+ *
+ * Author:		Michael Berberet
+ * CS login:		berberet
+ *
+ * Partner:	    Casey Lanham
+ * CS login:        lanham
+ *
+ * Partner:     Xuelong Zhang
+ * CS login:        xuelong
+ *
+ * Purpose: The purpose of destroy.C is to provide the functionality for
+ *  dropping relations from the database catalog
+ * */
+
 #include "catalog.h"
 #include <stdlib.h>
+
 //
 // Destroys a relation. It performs the following steps:
 //
@@ -10,7 +28,6 @@
 // 	OK on success
 // 	error code otherwise
 //
-
 const Status RelCatalog::destroyRel(const string & relation)
 {
   Status status;
@@ -45,7 +62,6 @@ const Status RelCatalog::destroyRel(const string & relation)
 // 	OK on success
 // 	error code otherwise
 //
-
 const Status AttrCatalog::dropRelation(const string & relation)
 {
     Status status;
@@ -54,10 +70,12 @@ const Status AttrCatalog::dropRelation(const string & relation)
 
     if (relation.empty()) return BADCATPARM;
 
+    // Get the relevant attribute info from attrCat
     status = attrCat->getRelInfo(relation, attrCnt, attrs);
     if (status != OK) {
         return status;
     }
+    // Remove the attributes from attrCat
     for (i = 0; i < attrCnt; i++) {
         string str(attrs[i].attrName);
         status = attrCat->removeInfo(relation, str);
