@@ -20,21 +20,28 @@ const Status RelCatalog::getInfo(const string & relation, RelDesc &record)
 
     scan1 = new  HeapFileScan(RELCATNAME, status);
     if (status != OK){
-    return status;
+        return status;
     }
+
     status = scan1->startScan(0, MAXNAME, STRING, relation.c_str(), EQ);
     if (status != OK) {
+        delete scan1;
         return status;
     }
+
     status = scan1->scanNext(rid);
     if (status != OK){
+        if (status == FILEEOF) {
+            status = RELNOTFOUND;
+        }
         return status;
     }
+
     status = getRecord(rid, rec);
     if (status != OK){
         return status;
     }
-    memcpy(&record, &rec, rec.length);
+    memcpy(&record, rec.data, rec.length);
     delete scan1;
     return OK;
 }
@@ -46,14 +53,16 @@ const Status RelCatalog::addInfo(RelDesc & record)
     Record rec;
     InsertFileScan*  ifs;
     Status status;
-    string str(record.relName);
-    ifs = new InsertFileScan(str, status);
+
+    ifs = new InsertFileScan(RELCATNAME, status);
     if (status != OK){
         return status;
     }
+
     rec.data = &record;
-    rec.length = sizeof(record);
-    status = ifs -> insertRecord(rec, rid);
+    rec.length = sizeof(RelDesc);
+
+    status = ifs->insertRecord(rec, rid);
     if (status != OK){
         return status;
     }
@@ -69,22 +78,26 @@ const Status RelCatalog::removeInfo(const string & relation)
     HeapFileScan*  hfs;
 
     if (relation.empty()) return BADCATPARM;
+
     hfs = new  HeapFileScan(RELCATNAME, status);
     if (status != OK){
-    return status;
+        return status;
     }
-    status = hfs->startScan(0, MAXNAME, STRING, relation.c_str(), EQ); 
+
+    status = hfs->startScan(0, MAXNAME, STRING, relation.c_str(), EQ);
     if (status != OK) {
         return status;
     }
     status = hfs->scanNext(rid);
+    if (status == FILEEOF){
+        return RELNOTFOUND;
+    }
+
+    status = hfs->deleteRecord();
     if (status != OK){
         return status;
     }
-    status = hfs-> deleteRecord();
-    if (status != OK){
-        return status;
-    }
+    hfs->endScan();
     delete hfs;
     return OK;
 }
@@ -129,7 +142,10 @@ const Status AttrCatalog::getInfo(const string & relation,
 
     while (1) {
         status = hfs->scanNext(rid);
-        if (status != OK) {
+        if (status == FILEEOF) {
+            status = ATTRNOTFOUND;
+            break;
+        } else if (status != OK) {
             break;
         }
 
@@ -192,7 +208,7 @@ const Status AttrCatalog::removeInfo(const string & relation,
 
   if (relation.empty() || attrName.empty()) return BADCATPARM;
 //start frank///////////////////////////////////////////////
-        hfs = new HeapFileScan(ATTRCATNAME, status);
+    hfs = new HeapFileScan(ATTRCATNAME, status);
     if (status != OK) {
         delete hfs;
         return status;
@@ -206,7 +222,10 @@ const Status AttrCatalog::removeInfo(const string & relation,
 
     while (1) {
         status = hfs->scanNext(rid);
-        if (status != OK) {
+        if (status == FILEEOF) {
+            status = ATTRNOTFOUND;
+            break;
+        } else if (status != OK) {
             break;
         }
 
@@ -240,7 +259,15 @@ const Status AttrCatalog::getRelInfo(const string & relation,
 
   if (relation.empty()) return BADCATPARM;
 //start frank////////////////////////////////////////////
-    hfs = new HeapFileScan(ATTRCATNAME, status);
+    RelDesc  rel;
+    status = relCat->getInfo(relation, rel);
+    if (status != OK) {
+        return status;
+    }
+
+    attrCnt = rel.attrCnt;
+
+/*    hfs = new HeapFileScan(ATTRCATNAME, status);
     if (status != OK) {
         delete hfs;
         return status;
@@ -266,10 +293,10 @@ const Status AttrCatalog::getRelInfo(const string & relation,
 
         attrCnt ++;
     }
-
+*/
     attrs = new AttrDesc[attrCnt];
 
-    status = hfs->resetScan();
+    hfs = new HeapFileScan(ATTRCATNAME, status);
     if (status != OK) {
         delete hfs;
         return status;
@@ -277,13 +304,15 @@ const Status AttrCatalog::getRelInfo(const string & relation,
 
     for (int i = 0; i < attrCnt; i++) {
         status = hfs->scanNext(rid);
-        if (status == FILEEOF || status != OK) {
-           break;
+        if (status == FILEEOF) {
+            delete hfs;
+            return OK;
+        } else if (status != OK) {
+            break;
         }
-
         status = hfs->getRecord(rec);
         if (status != OK) {
-           break;
+            break;
         }
 
         attrs[i] = *((AttrDesc *) rec.data);

@@ -1,5 +1,5 @@
 #include "catalog.h"
-
+#include <stdlib.h>
 //
 // Destroys a relation. It performs the following steps:
 //
@@ -15,7 +15,7 @@ const Status RelCatalog::destroyRel(const string & relation)
 {
   Status status;
 
-    if (relation.empty() || relation == string(RELCATNAME) || 
+    if (relation.empty() || relation == string(RELCATNAME) ||
         relation == string(ATTRCATNAME)) {
         return BADCATPARM;
     }
@@ -24,7 +24,7 @@ const Status RelCatalog::destroyRel(const string & relation)
         return status;
     }
 
-    if ((status = relCat->destroyRel(relation)) != OK) {
+    if ((status = relCat->removeInfo(relation)) != OK) {
         return status;
     }
 
@@ -49,14 +49,11 @@ const Status RelCatalog::destroyRel(const string & relation)
 const Status AttrCatalog::dropRelation(const string & relation)
 {
     Status status;
-    Status scanStatus;
     AttrDesc *attrs;
     int attrCnt, i;
-//    HeapFileScan *scan;
-//    RID rid;
-    
+
     if (relation.empty()) return BADCATPARM;
-    
+
     status = attrCat->getRelInfo(relation, attrCnt, attrs);
     if (status != OK) {
         return status;
@@ -69,30 +66,7 @@ const Status AttrCatalog::dropRelation(const string & relation)
         }
     }
 
- /*   scan = new HeapFileScan(relation, status);
-    if (status != OK) {
-        return status;
-    }
-
-    status = scan->startScan(0, MAXNAME, STRING, relation.c_str(), EQ);
-    if (status != OK) {
-        delete scan;
-        return status;
-    }
-
-    while (scanStatus != FILEEOF) {
-        scanStatus = scan->scanNext(rid);
-        if (scanStatus != OK && scanStatus != FILEEOF) {
-            delete scan;
-            return scanStatus;
-        }
-
-        status = scan->deleteRecord();
-        if (status != OK) {
-            delete scan;
-            return status;
-        }
-    }*/
+    free(attrs);
 
     return OK;
 }
