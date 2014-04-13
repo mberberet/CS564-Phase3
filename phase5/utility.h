@@ -15,7 +15,7 @@
 #include <string.h>
 using namespace std;
 #include "error.h"
-
+#include "catalog.h"
 // define if debug output wanted
 
 //
@@ -26,6 +26,10 @@ const Status UT_Load(const string & relation,
 		     const string & fileName);
 
 const Status UT_Print(string relation);
+
+const Status UT_computeWidth(const int attrCnt, const AttrDesc attrs[], int *&attrWidth);
+
+void UT_printRec(const int attrCnt, const AttrDesc attrs[], int *attrWidth, const Record &rec);
 
 void   UT_Quit(void);
 
