@@ -1,3 +1,20 @@
+/*
+ * File:		    buf.C
+ * Semester:		CS564 Spring 2014
+ *
+ * Author:		Michael Berberet
+ * CS login:		berberet
+ *
+ * Partner:	    Casey Lanham
+ * CS login:        lanham
+ *
+ * Partner:     Xuelong Zhang
+ * CS login:        xuelong
+ *
+ * Purpose: The purpose of the load.C file is to provide functionality
+ *  to load tuples from a file into a relation.
+ * */
+
 #include <unistd.h>
 #include <fcntl.h>
 #include "catalog.h"
@@ -12,7 +29,6 @@
 // 	OK on success
 // 	an error code otherwise
 //
-
 const Status UT_Load(const string & relation, const string & fileName)
 {
     Status status;
@@ -22,6 +38,7 @@ const Status UT_Load(const string & relation, const string & fileName)
     InsertFileScan * iFile;
     int width = 0;
     int records = 0;
+
     if (relation.empty() || fileName.empty() || relation == string(RELCATNAME)
         || relation == string(ATTRCATNAME))
       return BADCATPARM;
@@ -52,7 +69,6 @@ const Status UT_Load(const string & relation, const string & fileName)
     for (i = 0; i < attrCnt; i++) {
         width += attrs[i].attrLen;
     }
-
 
     // allocate buffer to hold record read from unix file
     char *record;
