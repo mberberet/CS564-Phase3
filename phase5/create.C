@@ -66,7 +66,7 @@ const Status RelCatalog::createRel(const string & relation,
             relCat->removeInfo(relation);
             return NAMETOOLONG;
         }
-        strcpy(ad.attrName, ai.attrName);
+        strcpy(ad.attrName, attrList[i].attrName);
         ad.attrOffset = offset;
         ad.attrType = attrList[i].attrType;
         ad.attrLen = attrList[i].attrLen;
