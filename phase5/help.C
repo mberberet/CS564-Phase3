@@ -34,8 +34,8 @@ const Status RelCatalog::help(const string & relation)
    int* attrWidth;
     if (relation.empty()) {
         return UT_Print(RELCATNAME);
-    }   else{
-        status = attrCat -> getRelInfo(relation, attrCnt, attrs);
+    } else{
+        status = getRelInfo(relation, attrCnt, attrs);
         if (status != OK){
             return status;
         }
@@ -51,4 +51,5 @@ const Status RelCatalog::help(const string & relation)
         }
     }   
     return OK;
+
 }
