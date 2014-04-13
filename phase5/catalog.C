@@ -259,13 +259,13 @@ const Status AttrCatalog::getRelInfo(const string & relation,
 
   if (relation.empty()) return BADCATPARM;
 //start frank////////////////////////////////////////////
-    RelDesc * rel;
+    RelDesc  rel;
     status = relCat->getInfo(relation, rel);
     if (status != OK) {
         return status;
     }
 
-    attrCnt = rel->attrCnt;
+    attrCnt = rel.attrCnt;
 
 /*    hfs = new HeapFileScan(ATTRCATNAME, status);
     if (status != OK) {
@@ -294,10 +294,9 @@ const Status AttrCatalog::getRelInfo(const string & relation,
         attrCnt ++;
     }
 */
-    attrs = new AttrDesc[attrCnt];cout<<"here1.1"<<endl;
+    attrs = new AttrDesc[attrCnt];
 
-
-    status = hfs->resetScan();
+    hfs = new HeapFileScan(ATTRCATNAME, status);
     if (status != OK) {
         delete hfs;
         return status;
