@@ -1,6 +1,5 @@
 #include "catalog.h"
 
-
 //First make sure that a relation with the same name doesn't already exist (by using the getInfo() function described below). Next add a tuple to the relcat relation. Do this by filling in an instance of the RelDesc structure above and then invoking the RelCatalog::addInfo() method. Third, for each of the attrCnt attributes, invoke the AttrCatalog::addInfo() method of the attribute catalog table (remember that this table is referred to by the global variable attrCat), passing the appropriate attribute information from the attrList[] array as an instance of the AttrDesc structure (see below). Finally, create a HeapFile instance to hold tuples of the relation (hint: there is a procedure to do this which we have seen in the last project stage; you need to give it a string that is the relation name). Implement this function in create.C
 
 
@@ -20,8 +19,27 @@ const Status RelCatalog::createRel(const string & relation,
         return NAMETOOLONG;
 
     // Make sure relation with the same name doesn't exist(use getInfo())
-    if (relCat->getInfo(relation, rd) != OK) {
+    status = relCat->getInfo(relation, rd);
+
+    if (status == OK) {
         return RELEXISTS;
+    } else if (status != RELNOTFOUND) {
+        return status;
+    }
+
+    int width = 0;
+
+    for (int i = 0; i < attrCnt; i++) {
+        width += attrList[i].attrLen;
+        for (int j = 0; j < i; j++) {
+            if (strcmp(attrList[i].attrName, attrList[j].attrName) == 0) {
+                return DUPLATTR;
+            }
+        }
+    }
+
+    if (width > PAGESIZE) {
+        return ATTRTOOLONG;
     }
 
     // Add tuple to relcat relation
@@ -29,6 +47,7 @@ const Status RelCatalog::createRel(const string & relation,
     if (relation.length() > MAXNAME) {
         return NAMETOOLONG;
     }
+
     strcpy(rd.relName, relation.c_str());
     rd.attrCnt = attrCnt;
     status = relCat->addInfo(rd);
@@ -42,8 +61,7 @@ const Status RelCatalog::createRel(const string & relation,
     strcpy(ad.relName, relation.c_str());
     for (int i = 0; i < attrCnt; i++) {
         ai = attrList[i];
-        // > ?
-        if (strlen(ai.attrName) >= MAXNAME) {
+        if (strlen(ai.attrName) >= sizeof ad.attrName) {
             // remove things already added?
             attrCat->dropRelation(relation);
             relCat->removeInfo(relation);
