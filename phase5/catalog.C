@@ -115,6 +115,18 @@ AttrCatalog::AttrCatalog(Status &status) :
 // nothing should be needed here
 }
 
+/**
+ * Return the attrbute description for attrName in relation to relName.
+ *
+ * @param const string & relation
+ * @param const string & attrName
+ * @param AttrDesc & record
+ *
+ * @return status - returns
+ *      Ok if sucessful
+ *      all possible error code from all method that
+ *      returns a status
+ */
 
 const Status AttrCatalog::getInfo(const string & relation,
 				  const string & attrName,
@@ -126,13 +138,13 @@ const Status AttrCatalog::getInfo(const string & relation,
     HeapFileScan*  hfs;
 
     if (relation.empty() || attrName.empty()) return BADCATPARM;
-//start frank///////////////////////////////////////////////
+    //create a new heapfilescan
     hfs = new HeapFileScan(ATTRCATNAME, status);
     if (status != OK) {
         delete hfs;
         return status;
     }
-
+    //start the scan from the beginning of the file
     status = hfs->startScan(0, MAXNAME, STRING, relation.c_str(), EQ);
     if (status != OK) {
         delete hfs;
@@ -140,9 +152,10 @@ const Status AttrCatalog::getInfo(const string & relation,
     }
 
     while (1) {
+    //scan all records and get record info one by one
         status = hfs->scanNext(rid);
         if (status == FILEEOF) {
-            status = ATTRNOTFOUND;
+            status = ATTRNOTFOUND;//return NO Match if reach EOF
             break;
         } else if (status != OK) {
             break;
@@ -154,17 +167,19 @@ const Status AttrCatalog::getInfo(const string & relation,
         }
 
         AttrDesc * attrDesc = (AttrDesc *) rec.data;
-
+    //compare the record with the attrName, copy the record to
+    //return location if find match
         if (strcmp(attrDesc->attrName, attrName.c_str()) == 0) {
             memcpy(&record, rec.data, rec.length);
             delete hfs;
             return status;
         }
     }
+    //delete the heapfilescan after done
     delete hfs;
     return status;
-//end frank//////////////////////////////////////////////
 }
+
 
 
 const Status AttrCatalog::addInfo(AttrDesc & record)
@@ -172,18 +187,14 @@ const Status AttrCatalog::addInfo(AttrDesc & record)
     RID rid;
     InsertFileScan*  ifs;
     Status status;
-//start frank////////////////////////////////////////////////
+
     Record rec;
     ifs = new InsertFileScan(ATTRCATNAME, status);
     if (status != OK) {
         delete ifs;
         return status;
     }
-/*    int len = strlen(record.relName);
-    memset(&record.attrName[len], 0, sizeof record.relName - len);
-    len = strlen(record.attrName);
-    memset(&record.attrName[len], 0, sizeof record.attrName - len);*/
-    //memcpy(rec.data, &record, sizeof(record));
+
     rec.data = &record;
     rec.length = sizeof(AttrDesc);
 
@@ -195,7 +206,6 @@ const Status AttrCatalog::addInfo(AttrDesc & record)
 
     delete ifs;
     return status;
-//end frank////////////////////////////////////////////////
 }
 
 
@@ -209,7 +219,7 @@ const Status AttrCatalog::removeInfo(const string & relation,
   HeapFileScan*  hfs;
 
   if (relation.empty() || attrName.empty()) return BADCATPARM;
-//start frank///////////////////////////////////////////////
+
     hfs = new HeapFileScan(ATTRCATNAME, status);
     if (status != OK) {
         delete hfs;
@@ -246,8 +256,22 @@ const Status AttrCatalog::removeInfo(const string & relation,
     }
     delete hfs;
     return status;
-//end frank/////////////////////////////////////////////////
 }
+
+
+/**
+ * Return all descriptors for all attrbutes of the relation
+ * as an array of AttrDesc
+ *
+ * @param const string & relation
+ * @param int & attrCnt
+ * @param AttrDesc *& attrs
+ *
+ * @return status - returns
+ *      Ok if sucessful
+ *      all possible error code from all method that
+ *      returns a status
+ */
 
 
 const Status AttrCatalog::getRelInfo(const string & relation,
@@ -260,7 +284,7 @@ const Status AttrCatalog::getRelInfo(const string & relation,
     HeapFileScan*  hfs;
 
     if (relation.empty()) return BADCATPARM;
-//start frank////////////////////////////////////////////
+    //get information from the relCat for the attrCnt
     RelDesc  rel;
     status = relCat->getInfo(relation, rel);
     if (status != OK) {
@@ -268,51 +292,24 @@ const Status AttrCatalog::getRelInfo(const string & relation,
     }
 
     attrCnt = rel.attrCnt;
-
-/*    hfs = new HeapFileScan(ATTRCATNAME, status);
-    if (status != OK) {
-        delete hfs;
-        return status;
-    }
-
-    status = hfs->startScan(0, MAXNAME, STRING, relation.c_str(), EQ);
-     if (status != OK) {
-        delete hfs;
-        return status;
-    }
-
-    status = hfs->markScan();
-    if (status != OK) {
-        delete hfs;
-        return status;
-    }
-
-    while(1) {
-        status = hfs->scanNext(rid);
-        if (status == FILEEOF || status != OK) {
-           break;
-        }
-
-        attrCnt ++;
-    }
-*/
+    //setting up the array to be returned
     attrs = new AttrDesc[attrCnt];
-
+    //create a new heapfilescan
     hfs = new HeapFileScan(ATTRCATNAME, status);
     if (status != OK) {
         delete hfs;
         return status;
     }
-
+    //start the scan from the beginning of the file
     status = hfs->startScan(0, MAXNAME, STRING, relation.c_str(), EQ);
     if (status != OK) {
         delete hfs;
         return status;
     }
-
+    //scan through all records and put the descriptors in the array
     for (int i = 0; i < attrCnt; i++) {
         status = hfs->scanNext(rid);
-        if (status == FILEEOF) {
+        if (status == FILEEOF) {//reach EOF, all file scaned
             delete hfs;
             return OK;
         } else if (status != OK) {
@@ -322,13 +319,12 @@ const Status AttrCatalog::getRelInfo(const string & relation,
         if (status != OK) {
             break;
         }
-
+    //cast the record and put the descriptors into the array
         attrs[i] = *((AttrDesc *) rec.data);
     }
-
+    //delete hfs after done
     delete hfs;
     return status;
-//end frank//////////////////////////////////////////////
 }
 
 
