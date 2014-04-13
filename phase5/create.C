@@ -60,8 +60,7 @@ const Status RelCatalog::createRel(const string & relation,
     int offset = 0;
     strcpy(ad.relName, relation.c_str());
     for (int i = 0; i < attrCnt; i++) {
-        ai = attrList[i];
-        if (strlen(ai.attrName) >= sizeof ad.attrName) {
+        if (strlen(attrList[i].attrName) >= sizeof ad.attrName) {
             // remove things already added?
             attrCat->dropRelation(relation);
             relCat->removeInfo(relation);
@@ -69,14 +68,14 @@ const Status RelCatalog::createRel(const string & relation,
         }
         strcpy(ad.attrName, ai.attrName);
         ad.attrOffset = offset;
-        ad.attrType = ai.attrType;
-        ad.attrLen = ai.attrLen;
+        ad.attrType = attrList[i].attrType;
+        ad.attrLen = attrList[i].attrLen;
 
         status = attrCat->addInfo(ad);
         if (status != OK) {
             return status;
         }
-        offset += ai.attrLen;
+        offset += ad.attrLen;
     }
 
     //  Create a heapfile instace to hold the tuples of the relation (look at last project)

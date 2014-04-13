@@ -35,7 +35,7 @@ const Status RelCatalog::help(const string & relation)
     if (relation.empty()) {
         return UT_Print(RELCATNAME);
     } else{
-        status = attrCat -> getRelInfo(relation, attrCnt, attrs);
+        status = attrCat->getRelInfo(relation, attrCnt, attrs);
         if (status != OK){
             return status;
         }
@@ -49,7 +49,7 @@ const Status RelCatalog::help(const string & relation)
         for (int i = 0;i < attrCnt; i++){
             printf("%-13s%-11d%-11d%-10d\n", attrs[i].attrName, attrs[i].attrOffset, attrs[i].attrType, attrs[i].attrLen);
         }
-    }   
+    }
     return OK;
 
 }
