@@ -18,7 +18,7 @@ const Status RelCatalog::getInfo(const string & relation, RelDesc &record)
     RID rid;
     HeapFileScan *scan1;
 
-    scan1 = new  HeapFileScan(relation, status);
+    scan1 = new  HeapFileScan(RELCATNAME, status);
     if (status != OK){
     return status;
     }
@@ -69,7 +69,7 @@ const Status RelCatalog::removeInfo(const string & relation)
     HeapFileScan*  hfs;
 
     if (relation.empty()) return BADCATPARM;
-    hfs = new  HeapFileScan(relation, status);
+    hfs = new  HeapFileScan(RELCATNAME, status);
     if (status != OK){
     return status;
     }
