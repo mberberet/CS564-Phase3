@@ -175,13 +175,12 @@ const Status AttrCatalog::getInfo(const string & relation,
 				  const string & attrName,
 				  AttrDesc &record)
 {
+    Status status;
+    RID rid;
+    Record rec;
+    HeapFileScan*  hfs;
 
-  Status status;
-  RID rid;
-  Record rec;
-  HeapFileScan*  hfs;
-
-  if (relation.empty() || attrName.empty()) return BADCATPARM;
+    if (relation.empty() || attrName.empty()) return BADCATPARM;
 //start frank///////////////////////////////////////////////
     hfs = new HeapFileScan(ATTRCATNAME, status);
     if (status != OK) {
@@ -225,9 +224,9 @@ const Status AttrCatalog::getInfo(const string & relation,
 
 const Status AttrCatalog::addInfo(AttrDesc & record)
 {
-  RID rid;
-  InsertFileScan*  ifs;
-  Status status;
+    RID rid;
+    InsertFileScan*  ifs;
+    Status status;
 //start frank////////////////////////////////////////////////
     Record rec;
     ifs = new InsertFileScan(ATTRCATNAME, status);
@@ -235,10 +234,13 @@ const Status AttrCatalog::addInfo(AttrDesc & record)
         delete ifs;
         return status;
     }
-
+/*    int len = strlen(record.relName);
+    memset(&record.attrName[len], 0, sizeof record.relName - len);
+    len = strlen(record.attrName);
+    memset(&record.attrName[len], 0, sizeof record.attrName - len);*/
     //memcpy(rec.data, &record, sizeof(record));
     rec.data = &record;
-    rec.length = sizeof(record);
+    rec.length = sizeof(AttrDesc);
 
     status = ifs->insertRecord(rec, rid);
     if (status != OK) {
@@ -307,12 +309,12 @@ const Status AttrCatalog::getRelInfo(const string & relation,
 				     int &attrCnt,
 				     AttrDesc *&attrs)
 {
-  Status status;
-  RID rid;
-  Record rec;
-  HeapFileScan*  hfs;
+    Status status;
+    RID rid;
+    Record rec;
+    HeapFileScan*  hfs;
 
-  if (relation.empty()) return BADCATPARM;
+    if (relation.empty()) return BADCATPARM;
 //start frank////////////////////////////////////////////
     RelDesc  rel;
     status = relCat->getInfo(relation, rel);
@@ -352,6 +354,12 @@ const Status AttrCatalog::getRelInfo(const string & relation,
     attrs = new AttrDesc[attrCnt];
 
     hfs = new HeapFileScan(ATTRCATNAME, status);
+    if (status != OK) {
+        delete hfs;
+        return status;
+    }
+
+    status = hfs->startScan(0, MAXNAME, STRING, relation.c_str(), EQ);
     if (status != OK) {
         delete hfs;
         return status;

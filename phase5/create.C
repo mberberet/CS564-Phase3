@@ -1,8 +1,39 @@
+/*
+ * File:		    create.C
+ * Semester:		CS564 Spring 2014
+ *
+ * Author:		Michael Berberet
+ * CS login:		berberet
+ *
+ * Partner:	    Casey Lanham
+ * CS login:        lanham
+ *
+ * Partner:     Xuelong Zhang
+ * CS login:        xuelong
+ *
+ * Purpose: The purpose of the create.C class is to allow a relation to
+ *  be created and added to the database.
+*/
+
+
 #include "catalog.h"
 
-//First make sure that a relation with the same name doesn't already exist (by using the getInfo() function described below). Next add a tuple to the relcat relation. Do this by filling in an instance of the RelDesc structure above and then invoking the RelCatalog::addInfo() method. Third, for each of the attrCnt attributes, invoke the AttrCatalog::addInfo() method of the attribute catalog table (remember that this table is referred to by the global variable attrCat), passing the appropriate attribute information from the attrList[] array as an instance of the AttrDesc structure (see below). Finally, create a HeapFile instance to hold tuples of the relation (hint: there is a procedure to do this which we have seen in the last project stage; you need to give it a string that is the relation name). Implement this function in create.C
 
-
+/* *
+ * Adds a relation to the database.
+ *
+ * @param relation - the name of the relation to be added
+ * @param attrCnt  - how many attributes are in the relation
+ * @param attrList - the attributes of the relation
+ *
+ * @return status - returns...
+ *      RELEXISTS if the relation already is in the database
+ *      NAMETOOLONG if the relation name is to long
+ *      BADCATPARM if no relation name or no attributes are provided
+ *      DUPLATTR if two attributes have the same name
+ *      ATTRTOOLONG if the relation is too large
+ *      OK if successful.
+ * */
 const Status RelCatalog::createRel(const string & relation,
 				   const int attrCnt,
 				   const attrInfo attrList[])
@@ -20,13 +51,13 @@ const Status RelCatalog::createRel(const string & relation,
 
     // Make sure relation with the same name doesn't exist(use getInfo())
     status = relCat->getInfo(relation, rd);
-
     if (status == OK) {
         return RELEXISTS;
     } else if (status != RELNOTFOUND) {
         return status;
     }
 
+    // Make sure the tuple isn't too large and check for duplicates
     int width = 0;
 
     for (int i = 0; i < attrCnt; i++) {
@@ -37,17 +68,15 @@ const Status RelCatalog::createRel(const string & relation,
             }
         }
     }
-
     if (width > PAGESIZE) {
         return ATTRTOOLONG;
     }
 
-    // Add tuple to relcat relation
-    //  make instance of RelDesc struct, then invoke RelCatalog::addInfo()
     if (relation.length() > MAXNAME) {
         return NAMETOOLONG;
     }
 
+    // Add the relation to relCat
     strcpy(rd.relName, relation.c_str());
     rd.attrCnt = attrCnt;
     status = relCat->addInfo(rd);
@@ -61,16 +90,18 @@ const Status RelCatalog::createRel(const string & relation,
     strcpy(ad.relName, relation.c_str());
     for (int i = 0; i < attrCnt; i++) {
         if (strlen(attrList[i].attrName) >= sizeof ad.attrName) {
-            // remove things already added?
+            // remove things already added to remain consistent
             attrCat->dropRelation(relation);
             relCat->removeInfo(relation);
             return NAMETOOLONG;
         }
-        strcpy(ad.attrName, ai.attrName);
+        // Prepare the attribute
+        strcpy(ad.attrName, attrList[i].attrName);
         ad.attrOffset = offset;
         ad.attrType = attrList[i].attrType;
         ad.attrLen = attrList[i].attrLen;
 
+        // Add the attribute to attrCat
         status = attrCat->addInfo(ad);
         if (status != OK) {
             return status;
