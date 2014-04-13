@@ -28,16 +28,28 @@ using namespace std;
 const Status RelCatalog::help(const string & relation)
 {
     Status status;
-    RelDesc rd;
+   // RelDesc rd;
     AttrDesc *attrs;
     int attrCnt;
-    int* attrWidth;
-    Record rec;
+   int* attrWidth;
     if (relation.empty()) {
         return UT_Print(RELCATNAME);
-} else{
-attrCat -> getRelInfo(relation, attrCnt, attrs);
-UT_computeWidth(attrCnt, attrs, attrWidth);
-UT_printRec(attrCnt, attrs, attrWidth, rec);
-}
+}   else{
+        status = getRelInfo(relation, attrCnt, attrs);
+        if (status != OK){
+            return status;
+        }
+        status = UT_computeWidth(attrCnt, attrs, attrWidth);
+        if (status != OK){
+            return status;
+        }
+        printf("relation %s\n\n", relation);
+        printf("attrName    attrOffset   attrType    attrLen \n");
+        printf("----------- ---------- ---------- ----------\n");
+        for (int i = 0;i < attrCnt; i++){
+            string str (attrs[i].attrName);
+            
+            print("%s %*d %*d %*d", str, 21, attrs[i].attrOffset, 32, attrs[i].attrType, 43, attrs[i].attrLen);
+        }
+    }   
 }
