@@ -27,14 +27,17 @@ using namespace std;
 
 const Status RelCatalog::help(const string & relation)
 {
-  Status status;
-  RelDesc rd;
-  AttrDesc *attrs;
-  int attrCnt;
-
-  if (relation.empty()) return UT_Print(RELCATNAME);
-
-
-
-  return OK;
+    Status status;
+    RelDesc rd;
+    AttrDesc *attrs;
+    int attrCnt;
+    int* attrWidth;
+    Record rec;
+    if (relation.empty()) {
+        return UT_Print(RELCATNAME);
+} else{
+attrCat -> getRelInfo(relation, attrCnt, attrs);
+UT_computeWidth(attrCnt, attrs, attrWidth);
+UT_printRec(attrCnt, attrs, attrWidth, rec);
+}
 }
