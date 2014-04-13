@@ -1,3 +1,22 @@
+/*
+ * File:		    help.C	
+ * Semester:		CS564 Spring 2014
+ *
+ * Author:		Michael Berberet
+ * CS login:		berberet
+ *
+ * Partner:	    Casey Lanham	
+ * CS login:        lanham
+ *
+ * Partner:     Xuelong Zhang
+ * CS login:        xuelong
+ *
+ * Purpose: prints a list of all the relations in relcat if the relation 
+ * passed in is empty. if the relation is not empty, it prints all the 
+ * tuples in attrcat that are relevant to relName
+ *
+ * */
+
 #include <sys/types.h>
 #include <functional>
 #include <string.h>
@@ -8,22 +27,21 @@ using namespace std;
 #include "utility.h"
 #include "catalog.h"
 
-// define if debug output wanted
 
 
-//
-// Retrieves and prints information from the catalogs about the for the
-// user. If no relation is given (relation is NULL), then it lists all
-// the relations in the database, along with the width in bytes of the
-// relation, the number of attributes in the relation, and the number of
-// attributes that are indexed.  If a relation is given, then it lists
-// all of the attributes of the relation, as well as its type, length,
-// and offset, whether it's indexed or not, and its index number.
-//
-// Returns:
-// 	OK on success
-// 	error code otherwise
-//
+/* *
+ * prints the relation info.  
+ *
+ * @param relation - empty if we want to print out all the 
+ *                   relations in relcat
+ *                   or holds the relation we are going to print
+ *                   all the tuples of
+ * 
+ * @return status - returns...
+ *                  OK if successful.
+ *                  status otherwise    
+ * */
+
 
 const Status RelCatalog::help(const string & relation)
 {
@@ -47,7 +65,8 @@ const Status RelCatalog::help(const string & relation)
         printf("attrName    attrOffset   attrType    attrLen \n");
         printf("----------- ---------- ---------- ----------\n");
         for (int i = 0;i < attrCnt; i++){
-            printf("%-13s%-11d%-11d%-10d\n", attrs[i].attrName, attrs[i].attrOffset, attrs[i].attrType, attrs[i].attrLen);
+            printf("%-13s%-11d%-11d%-10d\n", attrs[i].attrName, 
+                attrs[i].attrOffset, attrs[i].attrType, attrs[i].attrLen);
         }
     }
     return OK;
