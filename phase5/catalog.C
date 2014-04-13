@@ -1,5 +1,26 @@
+/*
+ * File:		    catalog.C
+ * Semester:		CS564 Spring 2014
+ *
+ * Author:		Michael Berberet
+ * CS login:		berberet
+ *
+ * Partner:	    Casey Lanham
+ * CS login:        lanham
+ *
+ * Partner:     Xuelong Zhang
+ * CS login:        xuelong
+ *
+ * Purpose: implement functions of RelCatalog and AttrCatalog to provide the
+ * functionality of the operating on Catalogs
+ *
+ */
+
+
 #include "catalog.h"
 #include "heapfile.h"
+
+
 
 RelCatalog::RelCatalog(Status &status) :
 	 HeapFile(RELCATNAME, status)
@@ -7,6 +28,17 @@ RelCatalog::RelCatalog(Status &status) :
 // nothing should be needed here
 }
 
+/* *
+ * finds and returns the desired tuple of the relation
+ *
+ * @param relation - holds the relation
+ * @param record   - holds the tuple that will be returned
+ *
+ * @return status - returns...
+ *                  OK if successful.
+ *                  RELNOTFOUND if we reach the end of the file
+ *                  without finding the touple
+ * */
 
 const Status RelCatalog::getInfo(const string & relation, RelDesc &record)
 {
@@ -46,6 +78,18 @@ const Status RelCatalog::getInfo(const string & relation, RelDesc &record)
     return OK;
 }
 
+/* *
+ * Adds the relation descriptor contained in record to the
+ * relcat relation
+ *
+ * @param record - holds the descriptor to be added to
+ *                 the relcat relation
+ *
+ * @return status - returns...
+ *                  OK if successful.
+ *                  an errorcode if not
+ *
+ * */
 
 const Status RelCatalog::addInfo(RelDesc & record)
 {
@@ -70,6 +114,17 @@ const Status RelCatalog::addInfo(RelDesc & record)
     return OK;
 
 }
+/*
+ * Removes the tuple correspinding to relName from relcat.
+ *
+ * @param relation - the relation to be removed
+ *
+ * @return status - returns...
+ *      OK if successful.
+ *      RELNOTFOUND if we reach the end of file without finding the relation
+ *      error code if not done correctly
+ *
+ * */
 
 const Status RelCatalog::removeInfo(const string & relation)
 {
@@ -182,6 +237,17 @@ const Status AttrCatalog::getInfo(const string & relation,
 
 
 
+/* *
+ * Adds a tuple to the attrcat relation. The tuple represents an attribute
+ *  of a relation.
+ *
+ * @param record - The data for the tuple to be added.
+ *
+ * @return status - returns...
+ *      OK if successful
+ *      errors otherwise
+ * */
+
 const Status AttrCatalog::addInfo(AttrDesc & record)
 {
     RID rid;
@@ -189,12 +255,15 @@ const Status AttrCatalog::addInfo(AttrDesc & record)
     Status status;
 
     Record rec;
+
+    // Want to insert the record into the ATTRCATNAME
     ifs = new InsertFileScan(ATTRCATNAME, status);
     if (status != OK) {
         delete ifs;
         return status;
     }
 
+    // Prep the record
     rec.data = &record;
     rec.length = sizeof(AttrDesc);
 
@@ -209,16 +278,26 @@ const Status AttrCatalog::addInfo(AttrDesc & record)
 }
 
 
+/* *
+ * Removes a tuple representing an attribute from the attrcat relation.
+ *
+ * @param relation - the relation the tuple belongs to
+ * @param attrName - the name of the attribute to remove
+ *
+ * @return status - returns...
+ *      OK if successful
+ *      errors otherwise
+ * */
 const Status AttrCatalog::removeInfo(const string & relation,
 			       const string & attrName)
 {
-  Status status;
-  Record rec;
-  RID rid;
-  AttrDesc record;
-  HeapFileScan*  hfs;
+    Status status;
+    Record rec;
+    RID rid;
+    AttrDesc record;
+    HeapFileScan*  hfs;
 
-  if (relation.empty() || attrName.empty()) return BADCATPARM;
+    if (relation.empty() || attrName.empty()) return BADCATPARM;
 
     hfs = new HeapFileScan(ATTRCATNAME, status);
     if (status != OK) {
@@ -226,14 +305,17 @@ const Status AttrCatalog::removeInfo(const string & relation,
         return status;
     }
 
+    // Want to get objects that belong to the relation name
     status = hfs->startScan(0, MAXNAME, STRING, relation.c_str(), EQ);
     if (status != OK) {
         delete hfs;
         return status;
     }
 
+    // Scan for tuples until we find the desired tuple or reach the EOF
     while (1) {
         status = hfs->scanNext(rid);
+        // If FILEEOF, the attribute isn't in the attrCat
         if (status == FILEEOF) {
             status = ATTRNOTFOUND;
             break;
@@ -241,6 +323,7 @@ const Status AttrCatalog::removeInfo(const string & relation,
             break;
         }
 
+        // Fetch the record
         status = hfs->getRecord(rec);
         if (status != OK) {
             break;
@@ -248,12 +331,15 @@ const Status AttrCatalog::removeInfo(const string & relation,
 
         record = *((AttrDesc*) rec.data);
 
+        // Check if the record belong to the relation is the one we
+        // are looking to delete
         if (strcmp(record.attrName, attrName.c_str()) == 0) {
             status = hfs->deleteRecord();
             delete hfs;
             return status;
         }
     }
+
     delete hfs;
     return status;
 }
