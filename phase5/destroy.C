@@ -15,15 +15,24 @@ const Status RelCatalog::destroyRel(const string & relation)
 {
   Status status;
 
-  if (relation.empty() || 
-      relation == string(RELCATNAME) || 
-      relation == string(ATTRCATNAME))
-    return BADCATPARM;
+    if (relation.empty() || relation == string(RELCATNAME) || 
+        relation == string(ATTRCATNAME)) {
+        return BADCATPARM;
+    }
 
+    if ((status = attrCat->dropRelation(relation)) != OK) {
+        return status;
+    }
 
+    if ((status = relCat->destroyRel(relation)) != OK) {
+        return status;
+    }
 
+    if ((status = destroyHeapFile(relation)) != OK) {
+        return status;
+    }
 
-
+    return OK;
 }
 
 
@@ -39,16 +48,53 @@ const Status RelCatalog::destroyRel(const string & relation)
 
 const Status AttrCatalog::dropRelation(const string & relation)
 {
-  Status status;
-  AttrDesc *attrs;
-  int attrCnt, i;
+    Status status;
+    Status scanStatus;
+    AttrDesc *attrs;
+    int attrCnt, i;
+//    HeapFileScan *scan;
+//    RID rid;
+    
+    if (relation.empty()) return BADCATPARM;
+    
+    status = attrCat->getRelInfo(relation, attrCnt, attrs);
+    if (status != OK) {
+        return status;
+    }
+    for (i = 0; i < attrCnt; i++) {
+        string str(attrs[i].attrName);
+        status = attrCat->removeInfo(relation, str);
+        if (status != OK) {
+            return status;
+        }
+    }
 
-  if (relation.empty()) return BADCATPARM;
+ /*   scan = new HeapFileScan(relation, status);
+    if (status != OK) {
+        return status;
+    }
 
+    status = scan->startScan(0, MAXNAME, STRING, relation.c_str(), EQ);
+    if (status != OK) {
+        delete scan;
+        return status;
+    }
 
+    while (scanStatus != FILEEOF) {
+        scanStatus = scan->scanNext(rid);
+        if (scanStatus != OK && scanStatus != FILEEOF) {
+            delete scan;
+            return scanStatus;
+        }
 
+        status = scan->deleteRecord();
+        if (status != OK) {
+            delete scan;
+            return status;
+        }
+    }*/
 
-
+    return OK;
 }
 
 
