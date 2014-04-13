@@ -47,7 +47,7 @@ const Status RelCatalog::help(const string & relation)
         printf("attrName    attrOffset   attrType    attrLen \n");
         printf("----------- ---------- ---------- ----------\n");
         for (int i = 0;i < attrCnt; i++){
-            printf("%s %-*d %-*d %-*d\n ", attrs[i].attrName, 20, attrs[i].attrOffset, 22 , attrs[i].attrType, 43, attrs[i].attrLen);
+            printf("%-13s%-11d%-11d%-10d\n", attrs[i].attrName, attrs[i].attrOffset, attrs[i].attrType, attrs[i].attrLen);
         }
     }   
     return OK;
