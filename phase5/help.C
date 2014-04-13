@@ -34,8 +34,8 @@ const Status RelCatalog::help(const string & relation)
    int* attrWidth;
     if (relation.empty()) {
         return UT_Print(RELCATNAME);
-}   else{
-        status = getRelInfo(relation, attrCnt, attrs);
+    }   else{
+        status = attrCat -> getRelInfo(relation, attrCnt, attrs);
         if (status != OK){
             return status;
         }
@@ -43,13 +43,12 @@ const Status RelCatalog::help(const string & relation)
         if (status != OK){
             return status;
         }
-        printf("relation %s\n\n", relation);
+        printf("relation %s\n\n", relation.c_str());
         printf("attrName    attrOffset   attrType    attrLen \n");
         printf("----------- ---------- ---------- ----------\n");
         for (int i = 0;i < attrCnt; i++){
-            string str (attrs[i].attrName);
-            
-            print("%s %*d %*d %*d", str, 21, attrs[i].attrOffset, 32, attrs[i].attrType, 43, attrs[i].attrLen);
+            printf("%s %*d %*d %*d", attrs[i].attrName, 21, attrs[i].attrOffset, 32, attrs[i].attrType, 43, attrs[i].attrLen);
         }
     }   
+    return OK;
 }
