@@ -18,23 +18,30 @@ const Status RelCatalog::getInfo(const string & relation, RelDesc &record)
     RID rid;
     HeapFileScan *scan1;
 
-    scan1 = new  HeapFileScan(relation, status);
+    scan1 = new  HeapFileScan(RELCATNAME, status);
     if (status != OK){
-    return status;
+        return status;
     }
+
     status = scan1->startScan(0, MAXNAME, STRING, relation.c_str(), EQ);
     if (status != OK) {
+        delete scan1;
         return status;
     }
+
     status = scan1->scanNext(rid);
     if (status != OK){
+        if (status == FILEEOF) {
+            status = RELNOTFOUND;
+        }
         return status;
     }
+
     status = getRecord(rid, rec);
     if (status != OK){
         return status;
     }
-    memcpy(&record, &rec, rec.length);
+    memcpy(&record, rec.data, rec.length);
     delete scan1;
     return OK;
 }
@@ -46,14 +53,16 @@ const Status RelCatalog::addInfo(RelDesc & record)
     Record rec;
     InsertFileScan*  ifs;
     Status status;
-    string str(record.relName);
-    ifs = new InsertFileScan(str, status);
+
+    ifs = new InsertFileScan(RELCATNAME, status);
     if (status != OK){
         return status;
     }
+
     rec.data = &record;
-    rec.length = sizeof(record);
-    status = ifs -> insertRecord(rec, rid);
+    rec.length = sizeof(RelDesc);
+
+    status = ifs->insertRecord(rec, rid);
     if (status != OK){
         return status;
     }
@@ -69,22 +78,26 @@ const Status RelCatalog::removeInfo(const string & relation)
     HeapFileScan*  hfs;
 
     if (relation.empty()) return BADCATPARM;
-    hfs = new  HeapFileScan(relation, status);
+
+    hfs = new  HeapFileScan(RELCATNAME, status);
     if (status != OK){
-    return status;
+        return status;
     }
+
     status = hfs->startScan(0, MAXNAME, STRING, relation.c_str(), EQ);
     if (status != OK) {
         return status;
     }
     status = hfs->scanNext(rid);
+    if (status == FILEEOF){
+        return RELNOTFOUND;
+    }
+
+    status = hfs->deleteRecord();
     if (status != OK){
         return status;
     }
-    status = hfs-> deleteRecord();
-    if (status != OK){
-        return status;
-    }
+    hfs->endScan();
     delete hfs;
     return OK;
 }
