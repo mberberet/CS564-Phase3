@@ -41,7 +41,6 @@ const Status RelCatalog::createRel(const string & relation,
     Status status;
     RelDesc rd;
     AttrDesc ad;
-    attrInfo ai;
 
     if (relation.empty() || attrCnt < 1)
         return BADCATPARM;
@@ -58,7 +57,7 @@ const Status RelCatalog::createRel(const string & relation,
     }
 
     // Make sure the tuple isn't too large and check for duplicates
-    int width = 0;
+    unsigned int width = 0;
 
     for (int i = 0; i < attrCnt; i++) {
         width += attrList[i].attrLen;
