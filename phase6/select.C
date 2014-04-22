@@ -24,13 +24,28 @@ const Status QU_Select(const string & result,
 		       const attrInfo projNames[],
 		       const attrInfo *attr, 
 		       const Operator op, 
-		       const char *attrValue)
+		       const char *attrValue)//filter
 {
    // Qu_Select sets up things and then calls ScanSelect to do the actual work
-    cout << "Doing QU_Select " << endl;
+    Status status;
+    AttrDesc attrDescArray[projCnt];
+    AttrDesc *attrDesc;
+    int attrCnt;
+    int reclen = 0;
+    for (int i = 0; i < projCnt; i++)
+    {
+        status = attrCat -> getInfo(projNames[i].relName,
+                                    proNames[i].attrName,
+                                    attrDescArray[i]);
+        if (status != OK)
+        {   
+            return status;
+        }
+        reclen += attrDescArray[i].AttrLen; 
 
-}
-
+    }
+    attrCat -> getRelInfo(
+//cout << "Doing QU_Select " << endl;
 
 const Status ScanSelect(const string & result, 
 #include "stdio.h"
