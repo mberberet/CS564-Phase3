@@ -23,7 +23,7 @@ const Status QU_Delete(const string & relation,
     Record rec;
     AttrDesc attr;
     Status status;
-
+    const char* filter;
     // Get info needed for the heapfile scanner
     attrCat->getInfo(relation, attrName, attr);
     if (status != OK) {
@@ -36,12 +36,20 @@ const Status QU_Delete(const string & relation,
         return status;
     }
 
-    // Convert attrValue?
-
+    // Convert the string attrValue into the proper type
+    if (type == INTEGER) {
+        int val = atoi(attrValue);
+        filter = (char *)&val;
+    } else if (type == FLOAT) {
+        double val = atof(attrValue);
+        filter = (char *)&val;
+    } else {
+        filter = attrValue;
+    }
 
     // Start the scan, looking for the filter to match the attribute
     // stored at attrOffset with a maxLen of attrLen
-    hfs->startScan(attr.attrOffset, attr.attrLen, type, attrValue, op);
+    hfs->startScan(attr.attrOffset, attr.attrLen, type, filter, op);
     if (status != OK) {
         return status;
     }
