@@ -32,6 +32,8 @@ const Status QU_Select(const string & result,
     AttrDesc *attrDesc;
     int attrCnt;
     int reclen = 0;
+    const char* filter;
+    cout << "Doing QU_Select " << endl;   
     for (int i = 0; i < projCnt; i++)
     {
         status = attrCat -> getInfo(projNames[i].relName,
@@ -41,11 +43,30 @@ const Status QU_Select(const string & result,
         {   
             return status;
         }
-        reclen += attrDescArray[i].AttrLen; 
+        reclen += attrDescArray[i].attrLen; 
 
     }
-    attrCat -> getRelInfo(
-//cout << "Doing QU_Select " << endl;
+    status = attrCat -> getInfo(attr->relName, attr->attrName, attrDesc); 
+    if (status != OK)
+        {   
+            return status;
+        }
+
+    if (type == INTEGER) {
+        int val = atoi(attrValue);
+        filter = (char *)&val;
+    } else if (type == FLOAT) {
+        double val = atof(attrValue);
+        filter = (char *)&val;
+    } else {
+        filter = attrValue;
+    }
+    status = ScanSelect(result, projCnt, attrDescArray, 
+                        attrDesc, op, filter, reclen);          
+    return status;        
+}
+ 
+
 
 const Status ScanSelect(const string & result, 
 #include "stdio.h"
@@ -58,6 +79,33 @@ const Status ScanSelect(const string & result,
 			const int reclen)
 {
     cout << "Doing HeapFileScan Selection using ScanSelect()" << endl;
+    HeapFileScan* hfs;
+    Status status;
+    Record rec;
+    RID rid;
+    InsertFileScan* ifs;
 
+    ifs = new InsertFileScan(result, status);
+    if (status != OK) {
+        return status;
+    }
+
+
+    hfs = new HeapFileScan(projNames[1].relName, status);
+    if (status != OK) {
+        return status;
+    }
+    status = hfs->startScan(attrDesc->attrOffset,
+                            attrDesc->attrLen, (Datatype) attrDesc->attrType,
+                            filter, op);
+    if (status != OK) {
+        return status;
+    }
+    while ((status = hfs->scanNext(rid)) == OK) {
+        status = hfs->getRecord(rec);
+    if (status != OK) {
+        return status;
+    }
+    
 
 }
