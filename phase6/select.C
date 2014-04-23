@@ -59,17 +59,17 @@ const Status QU_Select(const string & result,
         {
             return status;
         }
-
-        if (attr->attrType == INTEGER) {
-            int val = atoi(attrValue);
-            filter = (char *)&val;
-        } else if (attr->attrType == FLOAT) {
-            double val = atof(attrValue);
-            filter = (char *)&val;
-        } else {
-            filter = attrValue;
-        }
     }
+    if (attr->attrType == INTEGER) {
+        int val = atoi(attrValue);
+        filter = (char *)&val;
+    } else if (attr->attrType == FLOAT) {
+        double val = atof(attrValue);
+        filter = (char *)&val;
+    } else {
+        filter = attrValue;
+    }
+    
     status = ScanSelect(result, projCnt, attrDescArray,
                        & attrDesc, op, filter, reclen);
     if (status == FILEEOF) {
@@ -112,9 +112,11 @@ const Status ScanSelect(const string & result,
     if (status != OK) {
         return status;
     }
-
+cout << "Doineeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee" << endl;
     insRec.data = (char*) malloc(reclen);
     insRec.length = reclen;
+
+
 
     while ((status = hfs->scanNext(rid)) == OK) {
         status = hfs->getRecord(rec);
@@ -126,11 +128,12 @@ const Status ScanSelect(const string & result,
             memcpy((char*)insRec.data + offset,(char*) rec.data + projNames[i].attrOffset,
                     projNames[i].attrLen );
             offset = offset + projNames[i].attrLen;
-            status = ifs->insertRecord(insRec, rid);
-            if (status != OK) {
-                return status;
-            }
+        }
+        status = ifs->insertRecord(insRec, rid);
+        if (status != OK) {
+            return status;
         }
     }
+    
     return status;
 }
