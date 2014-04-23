@@ -55,14 +55,17 @@ const Status QU_Insert(const string & relation,
 		for (int j = 0; j < attrLen; j++) {
 			if (strcmp(attrList[i].attrName, attrinfo[j].attrName) == 0) {
 				int type = attrinfo[j].attrType;
+                char *filter;
 				if (type == INTEGER) {
 					int value = atoi((char*)attrList[i].attrValue);
+                    filter = (char *)&value;
 				} else if (type == FLOAT) {
 					float value = atof((char*)attrList[i].attrValue);
+                    filter = (char *)&value;
 				} else {
-					char * value = (char *)attrList[i].attrValue;
+					filter = (char *)attrList[i].attrValue;
 				}
-				memcpy((char*)rec.data + attrinfo[j].attrOffset, &value, attrinfo[j].attrLen);
+				memcpy((char*)rec.data + attrinfo[j].attrOffset, filter, attrinfo[j].attrLen);
 			}
 		}
     }
