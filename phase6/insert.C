@@ -23,7 +23,7 @@ const Status QU_Insert(const string & relation,
     RelDesc relinfo;
     AttrDesc* attrinfo;
 
-	// Get the information and relation information about the given relation
+	// Get relevant information about the relation and attributes
     status = relCat->getInfo(relation, relinfo);
     if (status != OK) {
 		return status;
@@ -33,11 +33,13 @@ const Status QU_Insert(const string & relation,
     if (status != OK) {
 		return status;
     }
+
     /*check the attribute count
     if (attrLen != attrCnt) {
     	return -1;
     }*/
-	// Find matching attrs, to get the lenth of the new record
+
+	// Determine the length of the new record
     for (int i = 0; i < attrLen; i++) {
 		for (int j = 0; j < attrCnt; j++) {
 			if (strcmp(attrinfo[i].attrName, attrList[j].attrName) == 0) {
@@ -46,36 +48,38 @@ const Status QU_Insert(const string & relation,
 		}
     }
 
-	// Create array directly in record.
+	// Initialize record data
     rec.data = (char*) malloc(len);
     rec.length = len;
 
-	// Find each attrValue, get the value at a string, and put it into data.
+	// Create the record data in the proper order
     for (int i = 0; i < attrCnt; i++) {
 		for (int j = 0; j < attrLen; j++) {
+            // Determine if the attribute is the next to be added
 			if (strcmp(attrList[i].attrName, attrinfo[j].attrName) == 0) {
 				int type = attrinfo[j].attrType;
-                char *filter;
+                char *value;
 				if (type == INTEGER) {
-					int value = atoi((char*)attrList[i].attrValue);
-                    filter = (char *)&value;
+					int val = atoi((char*)attrList[i].attrValue);
+                    value = (char *)&val;
 				} else if (type == FLOAT) {
-					float value = atof((char*)attrList[i].attrValue);
-                    filter = (char *)&value;
+					float val = atof((char*)attrList[i].attrValue);
+                    value = (char *)&val;
 				} else {
-					filter = (char *)attrList[i].attrValue;
+					value = (char *)attrList[i].attrValue;
 				}
-				memcpy((char*)rec.data + attrinfo[j].attrOffset, filter, attrinfo[j].attrLen);
+				memcpy((char*)rec.data + attrinfo[j].attrOffset, value, attrinfo[j].attrLen);
 			}
 		}
     }
 
     InsertFileScan ifs(relation, status);
     if (status != OK) {
+        delete ifs;
         return status;
     }
     status = ifs.insertRecord(rec, rid);
-
+    delete ifs;
     return status;
 
 }
