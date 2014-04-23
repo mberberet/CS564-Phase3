@@ -100,15 +100,20 @@ const Status ScanSelect(const string & result,
 
     ifs = new InsertFileScan(result, status);
     if (status != OK) {
+        delete ifs;
         return status;
     }
     hfs = new HeapFileScan(projNames[0].relName, status);
     if (status != OK) {
+        delete ifs;
+        delete hfs;
         return status;
     }
     status = hfs->startScan(attrDesc->attrOffset, attrDesc->attrLen,
                             (Datatype) attrDesc->attrType, filter, op);
     if (status != OK) {
+        delete ifs;
+        delete hfs;
         return status;
     }
 
@@ -118,6 +123,8 @@ const Status ScanSelect(const string & result,
     while (hfs->scanNext(rid) == OK) {
         status = hfs->getRecord(rec);
         if (status != OK) {
+            delete ifs;
+            delete hfs;
             return status;
         }
 
@@ -129,9 +136,13 @@ const Status ScanSelect(const string & result,
         }
         status = ifs->insertRecord(insRec, rid);
         if (status != OK) {
+            delete ifs;
+            delete hfs;
             return status;
         }
 
     }
+    delete ifs;
+    delete hfs;
     return status;
 }

@@ -37,12 +37,14 @@ const Status QU_Delete(const string & relation,
     // Want to scan the relation passed in
     hfs = new HeapFileScan(relation, status);
     if (status != OK) {
+        delete hfs;
         return status;
     }
 
     // Get info needed for the heapfile scanner
     attrCat->getInfo(relation, attrName, attr);
     if (status != OK) {
+        delete hfs;
         return status;
     }
 
@@ -50,6 +52,7 @@ const Status QU_Delete(const string & relation,
     // stored at attrOffset with a maxLen of attrLen
     hfs->startScan(attr.attrOffset, attr.attrLen, type, filter, op);
     if (status != OK) {
+        delete hfs;
         return status;
     }
 
@@ -58,15 +61,18 @@ const Status QU_Delete(const string & relation,
         // Ensure the record is currently stored in curRec of heapfile scanner
         status = hfs->getRecord(rec);
         if (status != OK) {
+            delete hfs;
             return status;
         }
 
         // Delete the record
         status = hfs->deleteRecord();
         if (status != OK) {
+            delete hfs;
             return status;
         }
     }
+    delete hfs;
     return OK;
 }
 
