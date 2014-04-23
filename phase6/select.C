@@ -68,7 +68,7 @@ const Status QU_Select(const string & result,
         }
     } else {
         filter = NULL;
-
+    }
     status = ScanSelect(result, projCnt, attrDescArray,
                         &attrDesc, op, filter, reclen);
     if (status == FILEEOF) {
@@ -80,7 +80,6 @@ const Status QU_Select(const string & result,
 
 
 const Status ScanSelect(const string & result,
-
 			const int projCnt,
 			const AttrDesc projNames[],
 			const AttrDesc *attrDesc,
@@ -88,6 +87,7 @@ const Status ScanSelect(const string & result,
 			const char *filter,
 			const int reclen)
 {
+
     cout << "Doing HeapFileScan Selection using ScanSelect()" << endl;
     HeapFileScan* hfs;
     Status status;
@@ -140,6 +140,7 @@ const Status ScanSelect(const string & result,
         }
 
     }
+
     delete ifs;
     delete hfs;
     return status;

@@ -22,6 +22,7 @@ const Status QU_Insert(const string & relation,
     int len = 0;
     RelDesc relinfo;
     AttrDesc* attrinfo;
+    InsertFileScan *ifs;
 
 	// Get relevant information about the relation and attributes
     status = relCat->getInfo(relation, relinfo);
@@ -73,12 +74,12 @@ const Status QU_Insert(const string & relation,
 		}
     }
 
-    InsertFileScan ifs(relation, status);
+    ifs = new InsertFileScan(relation, status);
     if (status != OK) {
         delete ifs;
         return status;
     }
-    status = ifs.insertRecord(rec, rid);
+    status = ifs->insertRecord(rec, rid);
     delete ifs;
     return status;
 
