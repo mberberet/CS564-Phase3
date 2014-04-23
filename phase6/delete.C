@@ -16,8 +16,6 @@ const Status QU_Delete(const string & relation,
 		       const Datatype type,
 		       const char *attrValue)
 {
-// part 6
-
     HeapFileScan* hfs;
     RID rid;
     Record rec;
@@ -56,17 +54,12 @@ const Status QU_Delete(const string & relation,
 
     // Retrieve all matching tuples
     while ((status = hfs->scanNext(rid)) == OK) {
-        if (status == FILEEOF) {
-            return OK;
-        } else if (status != OK) {
-            return status;
-        }
 
         // Ensure the record is currently stored in curRec of heapfile scanner
-        status = hfs->getRecord(rec);
+/*        status = hfs->getRecord(rec);
         if (status != OK) {
             return status;
-        }
+        }*/
 
         // Delete the record
         status = hfs->deleteRecord();

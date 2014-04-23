@@ -4,11 +4,11 @@
 #include "stdlib.h"
 
 // forward declaration
-const Status ScanSelect(const string & result, 
-			const int projCnt, 
+const Status ScanSelect(const string & result,
+			const int projCnt,
 			const AttrDesc projNames[],
-			const AttrDesc *attrDesc, 
-			const Operator op, 
+			const AttrDesc *attrDesc,
+			const Operator op,
 			const char *filter,
 			const int reclen);
 
@@ -20,11 +20,11 @@ const Status ScanSelect(const string & result,
  * 	an error code otherwise
  */
 
-const Status QU_Select(const string & result, 
-		       const int projCnt, 
+const Status QU_Select(const string & result,
+		       const int projCnt,
 		       const attrInfo projNames[],
-		       const attrInfo *attr, 
-		       const Operator op, 
+		       const attrInfo *attr,
+		       const Operator op,
 		       const char *attrValue)//filter
 {
    // Qu_Select sets up things and then calls ScanSelect to do the actual work
@@ -33,8 +33,9 @@ const Status QU_Select(const string & result,
     AttrDesc attrDesc;
     int reclen = 0;
     const char* filter;
-    
-    cout << "Doing QU_Select " << endl;   
+
+    cout << "Doing QU_Select " << endl;
+
     for (int i = 0; i < projCnt; i++)
     {
         string relation(projNames[i].relName);
@@ -42,43 +43,49 @@ const Status QU_Select(const string & result,
         status = attrCat -> getInfo(relation,
                                     attrName,
                                     attrDescArray[i]);
+
         if (status != OK)
-        {   
+        {
             return status;
         }
-        reclen += attrDescArray[i].attrLen; 
-
+        reclen += attrDescArray[i].attrLen;
     }
-    string relation(attr->relName);
-    string attrName(attr->attrName);
-    status = attrCat -> getInfo(relation,attrName, attrDesc); 
-    if (status != OK)
-        {   
+    if (attr != NULL) {
+        string relName(attr->relName);
+        string attName(attr->attrName);
+        status = attrCat -> getInfo(relName, attName, attrDesc);
+
+        if (status != OK)
+        {
             return status;
         }
 
-    if (attr->attrType == INTEGER) {
-        int val = atoi(attrValue);
-        filter = (char *)&val;
-    } else if (attr->attrType == FLOAT) {
-        double val = atof(attrValue);
-        filter = (char *)&val;
-    } else {
-        filter = attrValue;
+        if (attr->attrType == INTEGER) {
+            int val = atoi(attrValue);
+            filter = (char *)&val;
+        } else if (attr->attrType == FLOAT) {
+            double val = atof(attrValue);
+            filter = (char *)&val;
+        } else {
+            filter = attrValue;
+        }
     }
-    status = ScanSelect(result, projCnt, attrDescArray, 
-                       & attrDesc, op, filter, reclen);          
-    return status;        
+    status = ScanSelect(result, projCnt, attrDescArray,
+                       & attrDesc, op, filter, reclen);
+    if (status == FILEEOF) {
+        status = OK;
+    }
+    return status;
 }
- 
 
 
-const Status ScanSelect(const string & result, 
 
-			const int projCnt, 
+const Status ScanSelect(const string & result,
+
+			const int projCnt,
 			const AttrDesc projNames[],
-			const AttrDesc *attrDesc, 
-			const Operator op, 
+			const AttrDesc *attrDesc,
+			const Operator op,
 			const char *filter,
 			const int reclen)
 {
@@ -105,8 +112,10 @@ const Status ScanSelect(const string & result,
     if (status != OK) {
         return status;
     }
+
     insRec.data = (char*) malloc(reclen);
     insRec.length = reclen;
+
     while ((status = hfs->scanNext(rid)) == OK) {
         status = hfs->getRecord(rec);
         int offset = 0;
@@ -114,14 +123,14 @@ const Status ScanSelect(const string & result,
             return status;
         }
         for (int i = 0; i < projCnt; i++){
-            memcpy((char*)insRec.data + offset,(char*) rec.data + projNames[i].attrOffset, 
+            memcpy((char*)insRec.data + offset,(char*) rec.data + projNames[i].attrOffset,
                     projNames[i].attrLen );
             offset = offset + projNames[i].attrLen;
             status = ifs->insertRecord(insRec, rid);
             if (status != OK) {
                 return status;
             }
-        }   
+        }
     }
     return status;
 }
