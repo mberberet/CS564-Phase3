@@ -1,4 +1,21 @@
 #include "catalog.h"
+/*
+ * File:		    delete.C
+ * Semester:		CS564 Spring 2014
+ *
+ * Author:		Michael Berberet
+ * CS login:		berberet
+ *
+ * Partner:	    Casey Lanham
+ * CS login:        lanham
+ *
+ * Partner:     Xuelong Zhang
+ * CS login:        xuelong
+ *
+ * Purpose: implements deletion of a record from a relation.
+ *
+ */
+
 #include "query.h"
 #include "stdio.h"
 

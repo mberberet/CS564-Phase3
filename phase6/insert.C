@@ -1,3 +1,20 @@
+/*
+ * File:		    insert.C
+ * Semester:		CS564 Spring 2014
+ *
+ * Author:		Michael Berberet
+ * CS login:		berberet
+ *
+ * Partner:	    Casey Lanham
+ * CS login:        lanham
+ *
+ * Partner:     Xuelong Zhang
+ * CS login:        xuelong
+ *
+ * Purpose: implements insertion of a record into a relation.
+ *
+ */
+
 #include "catalog.h"
 #include "query.h"
 
@@ -35,11 +52,6 @@ const Status QU_Insert(const string & relation,
 		return status;
     }
 
-    /*check the attribute count
-    if (attrLen != attrCnt) {
-    	return -1;
-    }*/
-
 	// Determine the length of the new record
     for (int i = 0; i < attrLen; i++) {
 		for (int j = 0; j < attrCnt; j++) {
@@ -74,11 +86,13 @@ const Status QU_Insert(const string & relation,
 		}
     }
 
+    // Insert the new record into the relation
     ifs = new InsertFileScan(relation, status);
     if (status != OK) {
         delete ifs;
         return status;
     }
+
     status = ifs->insertRecord(rec, rid);
     delete ifs;
     return status;
