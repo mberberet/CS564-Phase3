@@ -1,6 +1,6 @@
 #include "catalog.h"
 #include "query.h"
-
+#include "stdio.h"
 
 /*
  * Deletes records from a specified relation.
@@ -22,17 +22,6 @@ const Status QU_Delete(const string & relation,
     AttrDesc attr;
     Status status;
     const char* filter;
-    // Get info needed for the heapfile scanner
-    attrCat->getInfo(relation, attrName, attr);
-    if (status != OK) {
-        return status;
-    }
-
-    // Want to scan the relation passed in
-    hfs = new HeapFileScan(relation, status);
-    if (status != OK) {
-        return status;
-    }
 
     // Convert the string attrValue into the proper type
     if (type == INTEGER) {
@@ -45,6 +34,18 @@ const Status QU_Delete(const string & relation,
         filter = attrValue;
     }
 
+    // Want to scan the relation passed in
+    hfs = new HeapFileScan(relation, status);
+    if (status != OK) {
+        return status;
+    }
+
+    // Get info needed for the heapfile scanner
+    attrCat->getInfo(relation, attrName, attr);
+    if (status != OK) {
+        return status;
+    }
+
     // Start the scan, looking for the filter to match the attribute
     // stored at attrOffset with a maxLen of attrLen
     hfs->startScan(attr.attrOffset, attr.attrLen, type, filter, op);
@@ -54,12 +55,11 @@ const Status QU_Delete(const string & relation,
 
     // Retrieve all matching tuples
     while ((status = hfs->scanNext(rid)) == OK) {
-
         // Ensure the record is currently stored in curRec of heapfile scanner
-/*        status = hfs->getRecord(rec);
+        status = hfs->getRecord(rec);
         if (status != OK) {
             return status;
-        }*/
+        }
 
         // Delete the record
         status = hfs->deleteRecord();
