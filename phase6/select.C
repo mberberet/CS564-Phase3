@@ -1,3 +1,20 @@
+/*
+ * File:		    select.C
+ * Semester:		CS564 Spring 2014
+ *
+ * Author:		Michael Berberet
+ * CS login:		berberet
+ *
+ * Partner:	    Casey Lanham
+ * CS login:        lanham
+ *
+ * Partner:     Xuelong Zhang
+ * CS login:        xuelong
+ *
+ * Purpose: implement the select function of a database
+ */
+
+
 #include "catalog.h"
 #include "query.h"
 #include "stdio.h"
@@ -12,13 +29,22 @@ const Status ScanSelect(const string & result,
 			const char *filter,
 			const int reclen);
 
-/*
- * Selects records from the specified relation.
+/* *
+ * sets up things and then calls ScanSelect 
  *
- * Returns:
- * 	OK on success
- * 	an error code otherwise
- */
+ * @param projCnt  - the number of items in projNames
+ * @param projNames- an array of the names
+ * @param attrDesc - the AttrDesc of the attribute we are selecting from 
+ * @param op       - the operator (=,>,<,...)
+ * @param filter   - the filter
+ * @param reclen   - the length of the record
+ * @param result   - the table to return the results in 
+ *
+ * @return status  - returns...
+ *                  OK if successful.
+ *                  error status if not
+ *                 
+ * */
 
 const Status QU_Select(const string & result,
 		       const int projCnt,
@@ -76,7 +102,13 @@ const Status QU_Select(const string & result,
     }
     return status;
 }
-
+/*
+ * Selects records from the specified relation.
+ *
+ * Returns:
+ * 	OK on success
+ * 	an error code otherwise
+ */
 
 
 const Status ScanSelect(const string & result,
