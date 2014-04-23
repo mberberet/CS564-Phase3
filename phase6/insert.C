@@ -75,10 +75,11 @@ const Status QU_Insert(const string & relation,
 
     InsertFileScan ifs(relation, status);
     if (status != OK) {
+        delete ifs;
         return status;
     }
     status = ifs.insertRecord(rec, rid);
-
+    delete ifs;
     return status;
 
 }

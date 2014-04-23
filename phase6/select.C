@@ -57,7 +57,6 @@ const Status QU_Select(const string & result,
         {
             return status;
         }
-
         if (attr->attrType == INTEGER) {
             int val = atoi(attrValue);
             filter = (char *)&val;
@@ -69,7 +68,7 @@ const Status QU_Select(const string & result,
         }
     } else {
         filter = NULL;
-    }
+
     status = ScanSelect(result, projCnt, attrDescArray,
                         &attrDesc, op, filter, reclen);
     if (status == FILEEOF) {
@@ -116,7 +115,6 @@ const Status ScanSelect(const string & result,
         delete hfs;
         return status;
     }
-
     insRec.data = (char *) malloc(reclen);
     insRec.length = reclen;
 
