@@ -16,7 +16,7 @@ const Status QU_Insert(const string & relation,
 {
 // part 6
 	Status status = OK;
-    Record record;
+    Record rec;
     RID rid;
     int attrLen = 0;
     int len = 0;
@@ -33,10 +33,10 @@ const Status QU_Insert(const string & relation,
     if (status != OK) {
 		return status;
     }
-    //check the attribute count
+    /*check the attribute count
     if (attrLen != attrCnt) {
     	return -1;
-    }
+    }*/
 	// Find matching attrs, to get the lenth of the new record
     for (int i = 0; i < attrLen; i++) {
 		for (int j = 0; j < attrCnt; j++) {
@@ -47,8 +47,8 @@ const Status QU_Insert(const string & relation,
     }
 
 	// Create array directly in record.
-    record.data = (char*) malloc(len);
-    record.length = len;
+    rec.data = (char*) malloc(len);
+    rec.length = len;
 
 	// Find each attrValue, get the value at a string, and put it into data.
     for (int i = 0; i < attrCnt; i++) {
@@ -62,7 +62,7 @@ const Status QU_Insert(const string & relation,
 				} else {
 					char * value = (char *)attrList[i].attrValue;
 				}
-				memcpy((char*)record.data + attrinfo[j].attrOffset, &val, attrinfo[j].attrLen);
+				memcpy((char*)rec.data + attrinfo[j].attrOffset, &value, attrinfo[j].attrLen);
 			}
 		}
     }
