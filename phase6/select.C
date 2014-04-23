@@ -57,18 +57,19 @@ const Status QU_Select(const string & result,
         {
             return status;
         }
-    }
 
-    if (attr->attrType == INTEGER) {
-        int val = atoi(attrValue);
-        filter = (char *)&val;
-    } else if (attr->attrType == FLOAT) {
-        double val = atof(attrValue);
-        filter = (char *)&val;
+        if (attr->attrType == INTEGER) {
+            int val = atoi(attrValue);
+            filter = (char *)&val;
+        } else if (attr->attrType == FLOAT) {
+            double val = atof(attrValue);
+            filter = (char *)&val;
+        } else {
+            filter = attrValue;
+        }
     } else {
-        filter = attrValue;
+        filter = NULL;
     }
-
     status = ScanSelect(result, projCnt, attrDescArray,
                         &attrDesc, op, filter, reclen);
     if (status == FILEEOF) {
